@@ -4,3 +4,4 @@ node_modules
 /certrequest.csr
 /ssl-key.pem
 /ssl-cert.pem
+public/images/

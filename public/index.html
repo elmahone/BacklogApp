@@ -1,41 +1,78 @@
 <!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Backlog App</title>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Backlog App | Front</title>
+    <link rel="stylesheet" href="css/font-awesome.min.css">
     <link rel="stylesheet" href="css/foundation.min.css">
     <link rel="stylesheet" href="css/app.css">
 </head>
 <body>
-<div id="content">
-    <nav>
-        <ul class="menu">
-            <li><b>Backlog App</b></li>
-            <li><a href="#">One</a></li>
-            <li><a href="#">Two</a></li>
-        </ul>
-    </nav>
 
-    <main>
-        <div id="list-container">
-            <label for="myList"><h2>My List</h2></label>
-            <p>Estimated time to finish: <span id="time"></span> hours</p>
-            <div id="myList"></div>
+<!-- Start Top Bar -->
+<nav class="top-bar">
+    <div class="top-bar-container">
+        <div class="top-bar-left">
+            <ul class="menu">
+                <li class="menu-text">Backlog App</li>
+                <li><a href="#">Backlog</a></li>
+                <li><a href="#">Search games</a></li>
+            </ul>
         </div>
-        <hr>
-        <div id="library-container">
-            <label for="games"><h2>My library</h2></label>
-            <div id="games"></div>
+        <div class="top-bar-right">
+            <ul class="menu">
+                <li><a href="#">Extra</a></li>
+                <li><a href="#">Profile</a></li>
+                <li><a href="#">Login</a></li>
+            </ul>
         </div>
-    </main>
+    </div>
+</nav>
+<!-- End Top Bar -->
+
+<div class="orbit" role="region" data-orbit>
+    <div id="welcome">
+        <div class="welcome-content">
+
+            <h1>Sign up</h1>
+
+            <p>Sign up to create your own game backlog list.</p>
+            <button class="button primary">Sign Up</button>
+            <button class="button secondary">Login</button>
+
+        </div>
+    </div>
+
+    <ul class="orbit-container">
+        <li id="slide1" class="orbit-slide is-active"></li>
+        <li id="slide2" class="orbit-slide"></li>
+        <li id="slide3" class="orbit-slide"></li>
+    </ul>
 </div>
 
-<script src="vendor/jquery/dist/jquery.min.js"></script>
-<script src="js/vendor/foundation.min.js"></script>
-<script src="js/app.js"></script>
+<footer>
+    <div class="footer-container">
+        <div class="footer-left">
+            <a href="#">Backlog App</a>
+        </div>
+        <div class="footer-right">
+            <ul class="menu simple">
+                <li><a href="https://www.facebook.com/"><i class="fa fa-facebook" aria-hidden="true"></i></a></li>
+                <li><a href="https://www.instagram.com/?hl=en"><i class="fa fa-instagram" aria-hidden="true"></i></a>
+                </li>
+                <li><a href="https://www.pinterest.com/"><i class="fa fa-pinterest-p" aria-hidden="true"></i></a></li>
+                <li><a href="https://twitter.com/?lang=en"><i class="fa fa-twitter" aria-hidden="true"></i></a></li>
+            </ul>
+        </div>
+    </div>
+</footer>
 
+<script src="vendor/jquery/dist/jquery.min.js"></script>
+<script src="js/vendor/foundation.js"></script>
+<script src="js/app.js"></script>
+<script>
+    $(document).foundation();
+</script>
 </body>
 </html>
