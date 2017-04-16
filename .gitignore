@@ -1,2 +1,6 @@
 .idea
 node_modules
+.env
+/certrequest.csr
+/ssl-key.pem
+/ssl-cert.pem
