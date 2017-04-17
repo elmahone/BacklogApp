@@ -1,6 +1,9 @@
 'use strict';
 const LocalStrategy = require('passport-local').Strategy;
+const cookieParser = require('cookie-parser');
+const session = require('express-session');
 const bodyParser = require('body-parser');
+const bcrypt = require('bcrypt-nodejs');
 const passport = require('passport');
 const mongoose = require('mongoose');
 const unirest = require('unirest');
@@ -32,8 +35,8 @@ const userSchema = new Schema({
     backlog: [
         {
             id: String,
-            name: String,
             platform: String,
+            name: String,
             playTime: Number,
             reviewScore: Number,
             listIndex: Number,
@@ -52,8 +55,58 @@ const gameSchema = new Schema({
 const Game = mongoose.model('Game', gameSchema);
 const User = mongoose.model('User', userSchema);
 
-passport.use(new LocalStrategy((username, password, done) => {
-        console.log('in passport');
+const cryptPassword = (password) => {
+    const salt = bcrypt.genSaltSync(10);
+    return bcrypt.hashSync(password, salt, null);
+};
+
+const validPassword = (password, userPassword) => {
+    return bcrypt.compareSync(password, userPassword);
+};
+
+// used to serialize the user for the session
+passport.serializeUser(function (user, done) {
+    done(null, user.id);
+});
+
+// used to deserialize the user
+passport.deserializeUser(function (id, done) {
+    User.findById(id, function (err, user) {
+        done(err, user);
+    });
+});
+
+
+passport.use('local-register', new LocalStrategy({
+        passReqToCallback: true
+    }, (req, username, password, done) => {
+        User.findOne({'username': username}).then((err, user) => {
+            if (err) {
+                return done(err);
+            }
+            if (user) {
+                return done(null, false, {message: 'Username already taken.'});
+            } else {
+                User.create({
+                    username: username,
+                    password: cryptPassword(password),
+                    xboxuser: null,
+                    steamuser: null,
+                    library: [],
+                    backlog: [],
+                }).then((json) => {
+                    return done(null, json)
+                });
+            }
+        })
+        ;
+    })
+)
+;
+
+passport.use('local-login', new LocalStrategy({
+        passReqToCallback: true
+    }, (req, username, password, done) => {
         User.findOne({username: username}, (err, user) => {
             if (err) {
                 return done(err);
@@ -61,7 +114,7 @@ passport.use(new LocalStrategy((username, password, done) => {
             if (!user) {
                 return done(null, false, {message: 'Incorrect username.'});
             }
-            if (user.password !== password) {
+            if (!validPassword(password, user.password)) {
                 return done(null, false, {message: 'Incorrect password.'});
             }
             return done(null, user);
@@ -69,6 +122,13 @@ passport.use(new LocalStrategy((username, password, done) => {
     }
 ));
 
+app.use(cookieParser());
+app.use(session({
+    secret: 'keyboard cat',
+    resave: false,
+    saveUninitialized: true,
+    cookie: {secure: true}
+}));
 app.use('/vendor', express.static('node_modules'));
 app.use(bodyParser.urlencoded({extended: true}));
 app.use('/uploads', express.static('uploads'));
@@ -103,7 +163,7 @@ app.get('/', (req, res) => {
 app.get('/getGames/:platform/:user', (req, res) => {
     const platform = req.params.platform;
     const username = req.params.user;
-    let games = {'xbox': [], 'steam': [], 'other': []};
+    let games = [];
     switch (platform) {
         case 'xbox': {
             let xboneReady = false;
@@ -123,6 +183,7 @@ app.get('/getGames/:platform/:user', (req, res) => {
                                     if (game.maxGamerscore !== 0) {
                                         games[platform].push({
                                             id: game.titleId.toString(16),
+                                            platform: platform,
                                             name: game.name,
                                             playTime: 0,
                                             reviewScore: 0,
@@ -143,6 +204,7 @@ app.get('/getGames/:platform/:user', (req, res) => {
                                     if (game.totalGamerscore !== 0) {
                                         games[platform].push({
                                             id: game.titleId.toString(16),
+                                            platform: platform,
                                             name: game.name,
                                             playTime: 0,
                                             reviewScore: 0,
@@ -178,6 +240,7 @@ app.get('/getGames/:platform/:user', (req, res) => {
                             let requests = library.length;
                             for (const game of library) {
                                 const appid = game.appid;
+                                // Small delay so api doesn't get overloaded
                                 setTimeout(() => {
                                     unirest.get(`https://store.steampowered.com/api/appdetails?appids=${appid}`)
                                         .end(function (response) {
@@ -188,6 +251,7 @@ app.get('/getGames/:platform/:user', (req, res) => {
                                                 games[platform].push(
                                                     {
                                                         id: appid,
+                                                        platform: platform,
                                                         name: response.body[appid].data.name,
                                                         playTime: 0,
                                                         reviewScore: 0,
@@ -214,3 +278,13 @@ app.get('/getGames/:platform/:user', (req, res) => {
         }
     }
 });
+
+app.post('/register', passport.authenticate('local-register', {
+    successRedirect: '/succ',
+    failureRedirect: 'fail',
+}));
+
+app.post('/login', passport.authenticate('local-login', {
+    successRedirect: '/succ',
+    failureRedirect: '/fail',
+}));
