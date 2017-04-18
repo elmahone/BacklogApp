@@ -40,7 +40,7 @@ http.createServer((req, res) => {
     res.end();
 }).listen(3000);
 
-mongoose.connect(`mongodb://${process.env.DB_USER}:${process.env.DB_PASS}@${process.env.DB_HOST}:${process.env.DB_PORT}/backlog`).then(() => {
+mongoose.connect(`mongodb://${process.env.DB_USER}:${process.env.DB_PASS}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`).then(() => {
     console.log('connected!');
 }, (err) => {
     console.log('failed: ' + err);

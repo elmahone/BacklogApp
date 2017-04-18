@@ -11,16 +11,20 @@ module.exports = (app, passport) => {
         const platform = req.params.platform;
         const username = req.params.user;
         let games = [];
+        let fails = [];
         switch (platform) {
             case 'xbox': {
                 let xboneReady = false;
                 let x360Ready = false;
+                // Get Xbox user id with given username
                 unirest.get('https://xboxapi.com/v2/xuid/' + username)
                     .headers({'X-Auth': process.env.XBOX_API})
                     .end(function (response) {
+                        console.log(response.body);
                         let xuid = '';
-                        if (response.body.success) {
+                        if (typeof response.body.error_code === 'undefined') {
                             xuid = response.body;
+                            // Get users xbox one game library
                             unirest.get('https://xboxapi.com/v2/' + xuid + '/xboxonegames')
                                 .headers({'X-Auth': process.env.XBOX_API})
                                 .end(function (response) {
@@ -28,7 +32,7 @@ module.exports = (app, passport) => {
                                     console.log(response.body.titles);
                                     for (const game of library) {
                                         if (game.maxGamerscore !== 0) {
-                                            games[platform].push({
+                                            games.push({
                                                 id: game.titleId.toString(16),
                                                 platform: platform,
                                                 name: game.name,
@@ -42,6 +46,7 @@ module.exports = (app, passport) => {
                                         res.send(games);
                                     }
                                 });
+                            // Get users xbox 360 game library
                             unirest.get('https://xboxapi.com/v2/' + xuid + '/xbox360games')
                                 .headers({'X-Auth': process.env.XBOX_API})
                                 .end(function (response) {
@@ -49,7 +54,7 @@ module.exports = (app, passport) => {
                                     console.log(response.body.titles);
                                     for (const game of library) {
                                         if (game.totalGamerscore !== 0) {
-                                            games[platform].push({
+                                            games.push({
                                                 id: game.titleId.toString(16),
                                                 platform: platform,
                                                 name: game.name,
@@ -71,31 +76,37 @@ module.exports = (app, passport) => {
             }
 
             case 'steam': {
+                // Get steam user id with given username
                 unirest.get(`http://api.steampowered.com/ISteamUser/ResolveVanityURL/v0001/?key=${process.env.STEAM_API}&vanityurl=${username}`)
                     .end(function (response) {
                         const body = response.body.response;
                         let steamid = '';
+                        // If username is not found assume user gave their steam id as username
                         if (body.success === 42 || typeof body.steamid === 'undefined') {
                             steamid = username
                         } else {
                             steamid = body.steamid;
                         }
+                        // Get users steam library
                         unirest.get(`http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key=${process.env.STEAM_API}&steamid=${steamid}&format=json`)
                             .end(function (response) {
                                 console.log(response.body);
                                 const library = response.body.response.games;
                                 let requests = library.length;
+                                let i = 0;
                                 for (const game of library) {
                                     const appid = game.appid;
+                                    i++;
                                     // Small delay so api doesn't get overloaded
                                     setTimeout(() => {
+                                        // Get game name for each game in library
                                         unirest.get(`https://store.steampowered.com/api/appdetails?appids=${appid}`)
                                             .end(function (response) {
                                                 requests--;
                                                 console.log(requests);
                                                 console.log(appid);
                                                 if (response.body !== null && response.body[appid].success) {
-                                                    games[platform].push(
+                                                    games.push(
                                                         {
                                                             id: appid,
                                                             platform: platform,
@@ -103,10 +114,10 @@ module.exports = (app, passport) => {
                                                             playTime: 0,
                                                             reviewScore: 0,
                                                         });
-                                                    console.log(games.length);
+                                                    console.log('Games in Lib: ' + games.length);
                                                 }
                                                 else {
-                                                    console.log('error');
+                                                    fails.push(appid);
                                                 }
                                                 if (requests === 0) {
                                                     //DONE
@@ -114,7 +125,7 @@ module.exports = (app, passport) => {
                                                 }
 
                                             });
-                                    }, 500);
+                                    }, i * 250);
                                 }
                             });
                     });
