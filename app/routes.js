@@ -1,10 +1,15 @@
 'use strict';
 const unirest = require('unirest');
+const path = require('path');
 
 module.exports = (app, passport) => {
 
     app.get('/', (req, res) => {
-        res.redirect('/index.html');
+        res.sendFile(path.join(__dirname + '/../public/index.html'));
+    });
+
+    app.get('/profile', (req, res) => {
+        res.sendFile(path.join(__dirname + '/../public/profile.html'));
     });
 
     app.get('/getGames/:platform/:user', (req, res) => {
@@ -138,12 +143,12 @@ module.exports = (app, passport) => {
     });
 
     app.post('/register', passport.authenticate('local-register', {
-        successRedirect: '/succ',
-        failureRedirect: 'fail',
+        successRedirect: '/profile',
+        failureRedirect: '/',
     }));
 
     app.post('/login', passport.authenticate('local-login', {
-        successRedirect: '/succ',
-        failureRedirect: '/fail',
+        successRedirect: '/profile',
+        failureRedirect: '/',
     }));
 };
