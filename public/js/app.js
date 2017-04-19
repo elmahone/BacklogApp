@@ -15,12 +15,10 @@ const confirmPassword = document.getElementById('confirm-password');
 const submitSignup = document.getElementById('submit-signup');
 const submitLogin = document.getElementById('submit-login');
 
-signupForm.addEventListener('submit', (e) => {
+signupForm.addEventListener('submit', () => {
     submitSignup.setAttribute('disabled', 'disabled');
 });
-
-loginForm.addEventListener('submit', (e) => {
-    e.preventDefault();
+loginForm.addEventListener('submit', () => {
     submitLogin.setAttribute('disabled', 'disabled');
 });
 

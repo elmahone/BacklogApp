@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Lag Log | Gaming Backlog App</title>
+    <link rel="stylesheet" href="public/css/font-awesome.min.css">
+    <link rel="stylesheet" href="public/css/foundation.min.css">
+    <link rel="stylesheet" href="public/css/app.css">
+</head>
+<body>
+<header>
+    <% include ../partials/header.ejs %>
+</header>
+<main>
+    <div class="orbit" role="region" data-orbit>
+        <div id="welcome">
+            <div class="welcome-content">
+                <h1>Sign up</h1>
+                <p>Sign up to create your own game backlog list.</p>
+                <button data-open="signup-modal" class="button primary">Sign Up</button>
+                <button data-open="login-modal" class="button secondary">Login</button>
+            </div>
+        </div>
+
+        <ul class="orbit-container">
+            <li id="slide1" class="orbit-slide is-active"></li>
+            <li id="slide2" class="orbit-slide"></li>
+            <li id="slide3" class="orbit-slide"></li>
+        </ul>
+    </div>
+</main>
+<footer>
+    <% include ../partials/footer.ejs %>
+</footer>
+<% include ../partials/modals.ejs %>
+
+<script src="vendor/jquery/dist/jquery.min.js"></script>
+<script src="public/js/vendor/foundation.js"></script>
+<script src="public/js/vendor/what-input.js"></script>
+<script src="public/js/app.js"></script>
+<script>$(document).foundation();</script>
+</body>
+</html>

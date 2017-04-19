@@ -5,11 +5,25 @@ const path = require('path');
 module.exports = (app, passport) => {
 
     app.get('/', (req, res) => {
-        res.sendFile(path.join(__dirname + '/../public/index.html'));
+        if (req.isAuthenticated()) {
+            res.render('pages/index', {
+                user: req.user
+            });
+        } else {
+            res.render('pages/index', {
+                user: false
+            });
+        }
     });
 
     app.get('/profile', (req, res) => {
-        res.sendFile(path.join(__dirname + '/../public/profile.html'));
+        if (req.isAuthenticated()) {
+            res.render('pages/profile', {
+                user: req.user
+            });
+        } else {
+            res.redirect('/');
+        }
     });
 
     app.get('/getGames/:platform/:user', (req, res) => {
@@ -151,4 +165,11 @@ module.exports = (app, passport) => {
         successRedirect: '/profile',
         failureRedirect: '/',
     }));
+
+    app.get('/logout', (req, res) => {
+        console.log('logout');
+        req.logout();
+        req.session.destroy();
+        res.redirect('/');
+    });
 };

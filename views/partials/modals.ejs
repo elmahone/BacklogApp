@@ -1,0 +1,35 @@
+<div class="tiny reveal" id="signup-modal" data-reveal>
+    <h2>Sign up</h2>
+    <form id="signup-form" action="/register" method="post">
+        <label>Username
+            <input type="text" name="username" required>
+        </label>
+        <label>Password
+            <input type="password" id="signup-password" name="password" required>
+        </label>
+        <label>Confirm Password
+            <input type="password" id="confirm-password">
+        </label>
+        <input type="submit" id="submit-signup" class="button expanded" value="Sign Up">
+    </form>
+    <button class="close-button" data-close aria-label="Close modal" type="button">
+        <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+
+<div class="tiny reveal" id="login-modal" data-reveal>
+    <h2>Login</h2>
+    <form id="login-form" action="/login" method="post">
+        <label>Username
+            <input type="text" name="username" class="login-input">
+        </label>
+        <label>Password
+            <input type="password" name="password" class="login-input">
+        </label>
+        <input type="submit" id="submit-login" class="button expanded" value="Login">
+    </form>
+    <a data-close data-open="signup-modal">Haven't signed up yet? Sign up here.</a>
+    <button class="close-button" data-close aria-label="Close modal" type="button">
+        <span aria-hidden="true">&times;</span>
+    </button>
+</div>
