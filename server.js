@@ -37,6 +37,11 @@ if (process.env.ENV === 'dev') {
         key: sslkey,
         cert: sslcert,
     };
+    https.createServer(options, app).listen(8080);
+    http.createServer((req, res) => {
+        res.writeHead(301, {'Location': 'https://localhost:8080' + req.url});
+        res.end();
+    }).listen(3000);
 } else {
     app.enable('trust proxy');
     app.use((req, res, next) => {
@@ -48,7 +53,7 @@ if (process.env.ENV === 'dev') {
             res.redirect('https://' + req.headers.host + req.url);
         }
     });
-
+    app.listen(3000);
 }
 
 mongoose.connect(`mongodb://${process.env.DB_USER}:${process.env.DB_PASS}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`).then(() => {
@@ -58,13 +63,3 @@ mongoose.connect(`mongodb://${process.env.DB_USER}:${process.env.DB_PASS}@${proc
 });
 
 require('./app/routes')(app, passport);
-
-if (process.env.ENV === 'dev') {
-    https.createServer(options, app).listen(8080);
-    http.createServer((req, res) => {
-        res.writeHead(301, {'Location': 'https://localhost:8080' + req.url});
-        res.end();
-    }).listen(3000);
-} else {
-    app.listen(3000);
-}
