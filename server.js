@@ -2,6 +2,7 @@
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const bodyParser = require('body-parser');
+const flash = require('connect-flash');
 const passport = require('passport');
 const mongoose = require('mongoose');
 const express = require('express');
@@ -28,6 +29,7 @@ app.use('/public', express.static('public'));
 
 app.use(passport.initialize());
 app.use(passport.session());
+app.use(flash());
 
 if (process.env.ENV === 'dev') {
     const sslkey = fs.readFileSync('ssl-key.pem');

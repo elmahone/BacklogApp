@@ -33,25 +33,31 @@ module.exports = (passport) => {
     passport.use('local-register', new LocalStrategy({
             passReqToCallback: true
         }, (req, username, password, done) => {
-            User.findOne({'username': username}).then((err, user) => {
-                if (err) {
-                    return done(err);
-                }
-                if (user) {
-                    return done(null, false, {message: 'Username already taken.'});
-                } else {
-                    User.create({
-                        username: username,
-                        password: cryptPassword(password),
-                        xboxuser: null,
-                        steamuser: null,
-                        library: [],
-                        backlog: [],
-                    }).then((json) => {
-                        return done(null, json)
-                    });
-                }
-            });
+
+            User.findOne({'username': {$regex: new RegExp(username, "i")}},
+                (err, user) => {
+                    if (err) {
+                        console.log(err);
+                        return done(err);
+                    }
+                    if (user.username.length > 0) {
+                        console.log('found');
+                        return done(null, false, req.flash('errorMessage', 'Username already taken.'));
+                    } else {
+                        console.log('new user');
+                        User.create({
+                            username: username,
+                            password: cryptPassword(password),
+                            xboxuser: null,
+                            steamuser: null,
+                            library: [],
+                            backlog: [],
+                        }).then((json) => {
+
+                            return done(null, json)
+                        });
+                    }
+                });
         })
     );
 
@@ -63,10 +69,10 @@ module.exports = (passport) => {
                     return done(err);
                 }
                 if (!user) {
-                    return done(null, false, {message: 'Incorrect username.'});
+                    return done(null, false, req.flash('errorMessage', 'Incorrect username.'));
                 }
                 if (!validPassword(password, user.password)) {
-                    return done(null, false, {message: 'Incorrect password.'});
+                    return done(null, false, req.flash('errorMessage', 'Incorrect password.'));
                 }
                 return done(null, user);
             });

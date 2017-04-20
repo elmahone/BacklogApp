@@ -12,6 +12,14 @@
 <header>
     <% include ../partials/header.ejs %>
 </header>
+<% if(errorMessage.length > 0) { %>
+<div id="error-message" class="alert callout" data-closable>
+    <b><%= errorMessage %></b>
+    <button class="close-button" aria-label="Dismiss alert" type="button" data-close>
+        <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+<% } %>
 <main>
     <div class="orbit" role="region" data-orbit>
         <div id="welcome">

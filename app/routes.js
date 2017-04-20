@@ -1,17 +1,21 @@
 'use strict';
 const unirest = require('unirest');
 const path = require('path');
+const User = require('./models/user');
 
 module.exports = (app, passport) => {
 
     app.get('/', (req, res) => {
         if (req.isAuthenticated()) {
+            console.log('auth');
             res.render('pages/index', {
-                user: req.user
+                user: req.user,
+                errorMessage: req.flash('errorMessage'),
             });
         } else {
+            console.log('noauth');
             res.render('pages/index', {
-                user: false
+                errorMessage: req.flash('errorMessage'),
             });
         }
     });
@@ -159,17 +163,29 @@ module.exports = (app, passport) => {
     app.post('/register', passport.authenticate('local-register', {
         successRedirect: '/profile',
         failureRedirect: '/',
+        failureFlash: true,
     }));
 
     app.post('/login', passport.authenticate('local-login', {
         successRedirect: '/profile',
         failureRedirect: '/',
+        failureFlash: true,
     }));
 
     app.get('/logout', (req, res) => {
-        console.log('logout');
         req.logout();
         req.session.destroy();
         res.redirect('/');
+    });
+
+    app.get('/findUser/:user', (req, res) => {
+        const newUser = req.params.user;
+        User.findOne({
+            username: {
+                $regex: new RegExp(newUser, "i")
+            }
+        }).then((json) => {
+            res.send(json);
+        });
     });
 };
