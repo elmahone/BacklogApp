@@ -29,13 +29,27 @@ app.use('/public', express.static('public'));
 app.use(passport.initialize());
 app.use(passport.session());
 
-const sslkey = fs.readFileSync('ssl-key.pem');
-const sslcert = fs.readFileSync('ssl-cert.pem');
+if (process.env.ENV === 'dev') {
+    const sslkey = fs.readFileSync('ssl-key.pem');
+    const sslcert = fs.readFileSync('ssl-cert.pem');
 
-const options = {
-    key: sslkey,
-    cert: sslcert,
-};
+    const options = {
+        key: sslkey,
+        cert: sslcert,
+    };
+} else {
+    app.enable('trust proxy');
+    app.use((req, res, next) => {
+        if (req.secure) {
+            // request was via https, so do no special handling
+            next();
+        } else {
+            // request was via http, so redirect to https
+            res.redirect('https://' + req.headers.host + req.url);
+        }
+    });
+
+}
 
 mongoose.connect(`mongodb://${process.env.DB_USER}:${process.env.DB_PASS}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`).then(() => {
     console.log('connected!');
@@ -45,8 +59,12 @@ mongoose.connect(`mongodb://${process.env.DB_USER}:${process.env.DB_PASS}@${proc
 
 require('./app/routes')(app, passport);
 
-https.createServer(options, app).listen(8080);
-http.createServer((req, res) => {
-    res.writeHead(301, {'Location': 'https://localhost:8080' + req.url});
-    res.end();
-}).listen(3000);
+if (process.env.ENV === 'dev') {
+    https.createServer(options, app).listen(8080);
+    http.createServer((req, res) => {
+        res.writeHead(301, {'Location': 'https://localhost:8080' + req.url});
+        res.end();
+    }).listen(3000);
+} else {
+    app.listen(3000);
+}
