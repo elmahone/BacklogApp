@@ -15,6 +15,7 @@ module.exports = (app, passport) => {
         } else {
             console.log('noauth');
             res.render('pages/index', {
+                user: false,
                 errorMessage: req.flash('errorMessage'),
             });
         }
