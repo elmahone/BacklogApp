@@ -33,14 +33,13 @@ module.exports = (passport) => {
     passport.use('local-register', new LocalStrategy({
             passReqToCallback: true
         }, (req, username, password, done) => {
-
             User.findOne({'username': {$regex: new RegExp(username, "i")}},
                 (err, user) => {
                     if (err) {
                         console.log(err);
                         return done(err);
                     }
-                    if (user.username.length > 0) {
+                    if (user) {
                         console.log('found');
                         return done(null, false, req.flash('errorMessage', 'Username already taken.'));
                     } else {

@@ -7,13 +7,11 @@ module.exports = (app, passport) => {
 
     app.get('/', (req, res) => {
         if (req.isAuthenticated()) {
-            console.log('auth');
             res.render('pages/index', {
                 user: req.user,
                 errorMessage: req.flash('errorMessage'),
             });
         } else {
-            console.log('noauth');
             res.render('pages/index', {
                 user: false,
                 errorMessage: req.flash('errorMessage'),
