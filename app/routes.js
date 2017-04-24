@@ -34,9 +34,9 @@ module.exports = (app, passport) => {
         const username = req.params.user;
         switch (platform) {
             case 'xbox': {
-                getXboxUserId(username, (xuid, err) => {
+                getXboxUserId(username, (resp, err) => {
                     if (!err) {
-                        res.send('OK');
+                        res.send(resp.user);
                     } else {
                         res.send(err);
                     }
@@ -44,9 +44,9 @@ module.exports = (app, passport) => {
                 break;
             }
             case 'steam': {
-                checkSteamId(username, (steamid, err) => {
+                checkSteamId(username, (resp, err) => {
                     if (!err) {
-                        res.send('OK');
+                        res.send(resp.user);
                     } else {
                         res.send(err);
                     }
@@ -54,8 +54,6 @@ module.exports = (app, passport) => {
                 break;
             }
         }
-
-
     });
 
     app.get('/getGames/:platform/:user', (req, res) => {
@@ -75,13 +73,13 @@ module.exports = (app, passport) => {
                 break;
             }
             case 'steam': {
-                checkSteamId(username, (library, err) => {
+                checkSteamId(username, (resp, err) => {
                     if (!err) {
-                        getSteamGames(library, (games) => {
+                        getSteamGames(resp.library, (games) => {
                             res.send(games);
                         });
                     } else {
-                        res.send(err);
+                        res.send(err.message);
                     }
                 });
                 break;
@@ -90,6 +88,23 @@ module.exports = (app, passport) => {
                 break;
             }
         }
+    });
+
+    app.get('/findUser/:user', (req, res) => {
+        const newUser = req.params.user;
+        User.findOne({
+            username: {
+                $regex: new RegExp(newUser, "i")
+            }
+        }).then((json) => {
+            res.send(json);
+        });
+    });
+
+    app.get('/logout', (req, res) => {
+        req.logout();
+        req.session.destroy();
+        res.redirect('/');
     });
 
     app.post('/register', passport.authenticate('local-register', {
@@ -104,23 +119,20 @@ module.exports = (app, passport) => {
         failureFlash: true,
     }));
 
-    app.get('/logout', (req, res) => {
-        req.logout();
-        req.session.destroy();
-        res.redirect('/');
-    });
-
-    app.get('/findUser/:user', (req, res) => {
-        const newUser = req.params.user;
-        User.findOne({
-            username: {
-                $regex: new RegExp(newUser, "i")
+    app.patch('/savePlatformUsername', (req, res) => {
+        const updateObj = {};
+        if (req.body.platform === 'steam') {
+            updateObj['steamuser'] = req.body.userInfo;
+        } else if (req.body.platform === 'xbox') {
+            updateObj['xboxuser'] = req.body.userInfo;
+        }
+        User.findByIdAndUpdate(req.body.userId, updateObj, {new: true}, (err) => {
+            if (err) {
+                return handleError(err);
             }
-        }).then((json) => {
-            res.send(json);
+            res.sendStatus(200);
         });
     });
-
 
     // FUNCTIONS =============================
 
@@ -143,9 +155,15 @@ module.exports = (app, passport) => {
                     .end(function (response) {
                         if (typeof response.body.response !== 'undefined') {
                             const library = response.body.response.games;
-                            cb(library, null);
+                            const resp = {
+                                success: true,
+                                user: steamid,
+                                library: library,
+                            };
+                            cb(resp, null);
                         } else {
-                            cb(null, 'Invalid SteamID or Steam User');
+                            const error = {success: false, message: 'Invalid SteamID or Steam User'};
+                            cb(null, error);
                         }
                     })
 
@@ -198,16 +216,17 @@ module.exports = (app, passport) => {
         unirest.get('https://xboxapi.com/v2/xuid/' + username)
             .headers({'X-Auth': process.env.XBOX_API})
             .end(function (response) {
-                console.log(response.body);
                 if (response.body.error_code) {
                     if (cb) {
-                        cb(null, 'Invalid gamertag');
+                        const error = {success: false, message: 'Invalid gamertag'};
+                        cb(null, error);
                     } else {
                         return false;
                     }
                 } else {
+                    const resp = {success: true, user: response.body};
                     if (cb) {
-                        cb(response.body, null);
+                        cb(resp, null);
                     } else {
                         return response.body;
                     }

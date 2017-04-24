@@ -6,8 +6,14 @@ mongoose.Promise = global.Promise; // ES6 promise
 const userSchema = new Schema({
     username: String,
     password: String,
-    xboxuser: String,
-    steamuser: String,
+    xboxuser: {
+        id: String,
+        name: String,
+    },
+    steamuser: {
+        id: String,
+        name: String,
+    },
     created: {type: Date, default: Date.now},
     library: [
         {

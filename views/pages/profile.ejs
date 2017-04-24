@@ -14,22 +14,69 @@
 </header>
 <main>
     <div id="content">
-        <h3>My Profile</h3>
-        <% if(user) { %>
-            <p>Hello <%= user.username %></p>
-        <% } %>
+        <h2>Profile - <%= user.username %></h2>
+        <input id="user-id" type="hidden" value="<%= user.id %>">
+        <div id="steam-user-block">
+            <label for="steam-user">Steam</label>
+            <div class="input-group">
+                <input type="text" class="input-group-field" id="steam-user"
+                       placeholder="Steam ID or Steam account name" value="<%= user.steamuser.name %>">
+                <a id="save-steamuser" class="button input-group-button"><i class="fa fa-save"
+                                                                            aria-hidden="true"></i></a>
+            </div>
+            <% if(user.steamuser.id){ %>
+            <a id="import-steam">Import Steam library</a>
+            <% } %>
+        </div>
+        <hr>
+        <div id="xbox-user-block">
+            <label for="xbox-user">Xbox</label>
+            <div class="input-group">
+                <input type="text" class="input-group-field" id="xbox-user" placeholder="Xbox Gamertag"
+                       value="<%= user.xboxuser.name %>">
+                <a id="save-xboxuser" type="submit" class="button input-group-button"><i class="fa fa-save"
+                                                                                         aria-hidden="true"></i></a>
+            </div>
+            <% if(user.xboxuser.id){ %>
+            <a id="import-xbox">Import Xbox library</a>
+            <% } %>
+        </div>
+        <hr>
+        <fieldset class="fieldset">
+            <legend><h2>My Library</h2></legend>
+            <ul class="tabs" data-tabs id="library-tabs">
+                <li class="tabs-title is-active"><a href="#tab-all" aria-selected="true">All</a></li>
+                <li class="tabs-title"><a href="#tab-steam">Steam</a></li>
+                <li class="tabs-title"><a href="#tab-xbox">Xbox</a></li>
+                <li class="tabs-title"><a href="#tab-other">Other</a></li>
+            </ul>
+            <div class="tabs-content" data-tabs-content="library-tabs">
+                <div class="tabs-panel is-active" id="tab-all">
+                    <p>All Games</p>
+                </div>
+                <div class="tabs-panel is-active" id="tab-steam">
+                    <p>Steam gaems</p>
+                </div>
+                <div class="tabs-panel" id="tab-xbox">
+                    <p>Xbox games</p>
+                </div>
+                <div class="tabs-panel" id="tab-other">
+                    <p>Other games</p>
+                </div>
+            </div>
+        </fieldset>
     </div>
 </main>
 
 <footer>
     <% include ../partials/footer.ejs %>
 </footer>
-<% include ../partials/modals.ejs %>
 
 <script src="vendor/jquery/dist/jquery.min.js"></script>
 <script src="public/js/vendor/foundation.js"></script>
 <script src="public/js/vendor/what-input.js"></script>
 <script src="public/js/app.js"></script>
+<script src="public/js/profile.js"></script>
 <script>$(document).foundation();</script>
 </body>
 </html>
