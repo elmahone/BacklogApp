@@ -20,8 +20,14 @@ const Game = require('./app/models/game');
 require('./app/passport')(passport);
 
 app.use(cookieParser());
-app.use(session({secret: 'secretsss'}));
+app.use(session({
+    secret: 'secretsss',
+    resave: false,
+    saveUninitialized: true,
+    cookie: {secure: true}
+}));
 app.use(bodyParser.urlencoded({extended: true}));
+app.use(bodyParser.json());
 
 app.use('/vendor', express.static('node_modules'));
 app.use('/uploads', express.static('uploads'));

@@ -16,17 +16,14 @@ module.exports = (passport) => {
     };
 
     // used to serialize the user for the session
-    passport.serializeUser(function (user, done) {
+    passport.serializeUser((user, done) => {
         done(null, user.id);
     });
 
     // used to deserialize the user
-    passport.deserializeUser(function (id, done) {
-        User.findById(id, function (err, user) {
-            done(err, {
-                id: user._id, username: user.username, xboxuser: user.xboxuser,
-                steamuser: user.steamuser, library: user.library, backlog: user.backlog,
-            });
+    passport.deserializeUser((id, done) => {
+        User.findById(id, (err, user) => {
+            done(err, user);
         });
     });
 
@@ -47,8 +44,8 @@ module.exports = (passport) => {
                         User.create({
                             username: username,
                             password: cryptPassword(password),
-                            xboxuser: null,
-                            steamuser: null,
+                            xboxuser: {id: null, name: null},
+                            steamuser: {id: null, name: null},
                             library: [],
                             backlog: [],
                         }).then((json) => {
