@@ -52,7 +52,6 @@ module.exports = (passport) => {
                             library: [],
                             backlog: [],
                         }).then((json) => {
-
                             return done(null, json)
                         });
                     }
@@ -63,18 +62,19 @@ module.exports = (passport) => {
     passport.use('local-login', new LocalStrategy({
             passReqToCallback: true
         }, (req, username, password, done) => {
-            User.findOne({username: username}, (err, user) => {
-                if (err) {
-                    return done(err);
-                }
-                if (!user) {
-                    return done(null, false, req.flash('errorMessage', 'Incorrect username.'));
-                }
-                if (!validPassword(password, user.password)) {
-                    return done(null, false, req.flash('errorMessage', 'Incorrect password.'));
-                }
-                return done(null, user);
-            });
+            User.findOne({username: {$regex: new RegExp(username, "i")}},
+                (err, user) => {
+                    if (err) {
+                        return done(err);
+                    }
+                    if (!user) {
+                        return done(null, false, req.flash('errorMessage', 'Incorrect username.'));
+                    }
+                    if (!validPassword(password, user.password)) {
+                        return done(null, false, req.flash('errorMessage', 'Incorrect password.'));
+                    }
+                    return done(null, user);
+                });
         }
     ));
 };
