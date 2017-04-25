@@ -2,6 +2,7 @@
 const unirest = require('unirest');
 const path = require('path');
 const User = require('./models/user');
+const Game = require('./models/game');
 
 module.exports = (app, passport) => {
 
@@ -94,7 +95,7 @@ module.exports = (app, passport) => {
         const newUser = req.params.user;
         User.findOne({
             username: {
-                $regex: new RegExp(newUser, "i")
+                $regex: new RegExp(newUser, 'i')
             }
         }).then((json) => {
             res.send(json);
@@ -172,22 +173,31 @@ module.exports = (app, passport) => {
 
     // Loop through users library and get each game's name
     const getSteamGames = (library, cb) => {
-        let requests = library.length;
         let games = [];
-        let i = 0;
+        let delay = 0;
+        let loop = 0;
         for (const game of library) {
-            i++;
+            delay++;
             // Small delay so api doesn't get overloaded
             setTimeout(() => {
-                requests--;
+                loop++;
                 getSteamGameInformation(game.appid, (game) => {
-                    games.push(game);
+                    if (game) {
+                        games.push(game);
+                    }
+                    console.log(loop + '/' + library.length);
                 });
-                if (requests === 0) {
-                    //DONE
-                    cb(games);
+
+                // Final loop
+                if (loop === library.length) {
+                    console.log('Done');
+                    saveNewGamesToDb(games, () => {
+                        console.log('save');
+                        cb(games);
+                        return false;
+                    });
                 }
-            }, i * 220);
+            }, delay * 400);
         }
     };
 
@@ -198,19 +208,22 @@ module.exports = (app, passport) => {
         unirest.get(`https://store.steampowered.com/api/appdetails?appids=${appid}`)
             .end(function (response) {
                 if (response.body !== null && response.body[appid].success) {
+                    const gameName = response.body[appid].data.name;
                     const game = {
                         id: appid,
                         platform: platform,
-                        name: response.body[appid].data.name,
+                        name: gameName,
                         playTime: 0,
                         reviewScore: 0,
                     };
                     cb(game);
+                } else {
+                    cb(false);
                 }
             });
     };
 
-    // Get xbox users id with username
+// Get xbox users id with username
     const getXboxUserId = (username, cb = null) => {
         username = encodeURIComponent(username.trim());
         unirest.get('https://xboxapi.com/v2/xuid/' + username)
@@ -234,7 +247,7 @@ module.exports = (app, passport) => {
             });
     };
 
-    // Get xbox users games library with id
+// Get xbox users games library with id
     const getXboxGames = (xuid, cb) => {
         const platform = 'xbox';
         let xboneReady = false;
@@ -283,5 +296,172 @@ module.exports = (app, passport) => {
                     cb(games);
                 }
             });
-    }
-};
+    };
+
+    const isRomanNumeral = (val) => {
+        return /^M{0,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})$/.test(val);
+    };
+    const isNumber = (val) => {
+        return /^\d+$/.test(val);
+    };
+    const toRoman = (num) => {
+        let result = '';
+        const decimal = [1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1];
+        const roman = ['M', 'CM', 'D', 'CD', 'C', 'XC', 'L', 'XL', 'X', 'IX', 'V', 'IV', 'I'];
+        for (let i = 0; i <= decimal.length; i++) {
+            // looping over every element of our arrays
+            while (num % decimal[i] < num) {
+                // keep trying the same number until we need to move to a smaller one
+                result += roman[i];
+                // add the matching roman number to our result string
+                num -= decimal[i];
+                // subtract the decimal value of the roman number from our number
+            }
+        }
+        return result;
+    };
+    const fromRoman = (str) => {
+        let result = 0;
+        // the result is now a number, not a string
+        const decimal = [1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1];
+        const roman = ['M', 'CM', 'D', 'CD', 'C', 'XC', 'L', 'XL', 'X', 'IX', 'V', 'IV', 'I'];
+        for (let i = 0; i <= decimal.length; i++) {
+            while (str.indexOf(roman[i]) === 0) {
+                //checking for the first characters in the string
+                result += decimal[i];
+                //adding the decimal value to our result counter
+                str = str.replace(roman[i], '');
+                //remove the matched Roman letter from the beginning
+            }
+        }
+        if (result > 0) {
+            return result;
+        } else {
+            return null;
+        }
+    };
+
+    const generateAltNames = (name) => {
+        let altNames = [];
+        let strippedName = name.replace(/\./g, '').replace(/\'/g, '').replace(/[^\w\s!?]/g, ' ').replace('_', ' ').replace(/  +/g, ' ');
+        if (strippedName !== name) {
+            altNames.push(strippedName.trim());
+        }
+        const nameArr = strippedName.split(' ');
+        if (nameArr.length > 1) {
+            let convertedName = nameArr.map((word) => {
+                if (isRomanNumeral(word)) {
+                    return fromRoman(word);
+                } else if (isNumber(word)) {
+                    return toRoman(word);
+                }
+                return word;
+            });
+            convertedName = convertedName.join(' ');
+            if (convertedName !== name && convertedName !== strippedName) {
+                altNames.push(convertedName.trim());
+            }
+            return altNames;
+        } else {
+            return null;
+        }
+    };
+
+    const isGameInDb = (gameName, cb) => {
+        Game.findOne({
+            name: {
+                $regex: new RegExp(gameName, 'i')
+            }
+        }).then((json) => {
+            if (json) {
+                cb(json);
+            } else {
+                const altNames = generateAltNames(gameName);
+                Game.findOne({
+                    altNames: {
+                        $regex: new RegExp(altNames, 'i')
+                    }
+                }).then((json) => {
+                    if (json) {
+                        cb(json);
+                    } else {
+                        cb(null);
+                    }
+                });
+            }
+        });
+    };
+
+    const saveNewGamesToDb = (games, cb) => {
+        console.log(games);
+        if (games.length >= 1) {
+            for (const game of games) {
+                isGameInDb(game.name, (response) => {
+                    if (!response) {
+                        console.log('NOT IN DB ' + game.name);
+                        switch (game.platform) {
+                            case 'xbox': {
+                                Game.create({
+                                    name: game.name,
+                                    altNames: generateAltNames(game.name),
+                                    xboxID: game.id,
+                                }).then(() => {
+                                    cb();
+                                });
+                                break;
+                            }
+                            case 'steam': {
+                                Game.create({
+                                    name: game.name,
+                                    altNames: generateAltNames(game.name),
+                                    steamID: game.id,
+                                }).then(() => {
+                                    cb();
+                                });
+                                break;
+                            }
+                            default: {
+                                break;
+                            }
+                        }
+                    } else {
+                        switch (game.platform) {
+                            case 'xbox': {
+                                Game.findOne({xboxID: game.id}).then((data) => {
+                                    // If no game with this steamID is found then continue
+                                    if (!data) {
+                                        Game.findByIdAndUpdate(response._id, {xboxID: game.id}, {new: true}, (err) => {
+                                            if (err) {
+                                                return handleError(err);
+                                            }
+                                        });
+                                    }
+                                    cb();
+                                });
+                                break;
+                            }
+                            case 'steam': {
+                                Game.findOne({steamID: game.id}).then((data) => {
+                                    // If no game with this steamID is found then continue
+                                    if (!data) {
+                                        Game.findByIdAndUpdate(response._id, {steamID: game.id}, {new: true}, (err) => {
+                                            if (err) {
+                                                return handleError(err);
+                                            }
+                                        });
+                                    }
+                                    cb();
+                                });
+                                break;
+                            }
+                            default: {
+                                break;
+                            }
+                        }
+                    }
+                });
+            }
+        }
+    };
+}
+;

@@ -98,3 +98,19 @@ const saveUsername = (platform, userInfo, cb) => {
         }
     })
 };
+
+const initImportListeners = () => {
+    if (document.getElementById('import-xbox')) {
+        const importXbox = document.getElementById('import-xbox');
+        importXbox.addEventListener('click', () => {
+
+        });
+    }
+    if (document.getElementById('import-steam')) {
+        const importSteam = document.getElementById('import-steam');
+        importSteam.addEventListener('click', () => {
+
+        });
+    }
+
+};

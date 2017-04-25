@@ -4,9 +4,8 @@ const Schema = mongoose.Schema;
 mongoose.Promise = global.Promise; // ES6 promise
 
 const gameSchema = new Schema({
-    id: Number,
     name: String,
-    altName: String,
+    altNames: [String],
     igdbID: Number,
     steamID: Number,
     xboxID: Number,

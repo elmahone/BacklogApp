@@ -15,8 +15,6 @@ const app = express();
 // set the view engine to ejs
 app.set('view engine', 'ejs');
 
-const Game = require('./app/models/game');
-
 require('./app/passport')(passport);
 
 app.use(cookieParser());
