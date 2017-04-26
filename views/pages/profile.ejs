@@ -24,9 +24,11 @@
                 <a id="save-steamuser" class="button input-group-button"><i class="fa fa-save"
                                                                             aria-hidden="true"></i></a>
             </div>
-            <% if(user.steamuser.id){ %>
-            <a id="import-steam">Import Steam library</a>
-            <% } %>
+            <div id="import-steam-button">
+                <% if(user.steamuser.id){ %>
+                <a id="import-steam">Import Steam library</a>
+                <% } %>
+            </div>
         </div>
         <hr>
         <div id="xbox-user-block">
@@ -37,9 +39,11 @@
                 <a id="save-xboxuser" type="submit" class="button input-group-button"><i class="fa fa-save"
                                                                                          aria-hidden="true"></i></a>
             </div>
-            <% if(user.xboxuser.id){ %>
-            <a id="import-xbox">Import Xbox library</a>
-            <% } %>
+            <div id="import-xbox-button">
+                <% if(user.xboxuser.id){ %>
+                <a id="import-xbox">Import Xbox library</a>
+                <% } %>
+            </div>
         </div>
         <hr>
         <fieldset class="fieldset">
@@ -52,10 +56,19 @@
             </ul>
             <div class="tabs-content" data-tabs-content="library-tabs">
                 <div class="tabs-panel is-active" id="tab-all">
-                    <p>All Games</p>
+                    <% user.library.forEach(function(game){
+                    if(!game.hidden) { %>
+                    <div id="<%= game.id %>" data-platform="<%= game.platform %>">
+                        <p><%= game.name %></p>
+                    </div>
+                    <% }}) %>
                 </div>
                 <div class="tabs-panel is-active" id="tab-steam">
-                    <p>Steam gaems</p>
+                    <% user.library.forEach(function(game){ %>
+                    <div id="<%= game.id %>" data-platform="<%= game.platform %>">
+                        <p><%= game.name %></p>
+                    </div>
+                    <% }) %>
                 </div>
                 <div class="tabs-panel" id="tab-xbox">
                     <p>Xbox games</p>

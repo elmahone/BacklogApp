@@ -22,6 +22,7 @@ const userSchema = new Schema({
             name: String,
             playTime: Number,
             reviewScore: Number,
+            hidden: boolean,
         }
     ],
     backlog: [

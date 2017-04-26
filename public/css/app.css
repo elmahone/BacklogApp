@@ -32,7 +32,7 @@ footer .footer-right .fa:hover {
 }
 
 input.failed {
-    border:1px solid #d40c00;
+    border: 1px solid #d40c00;
 }
 
 /* IDs */
@@ -174,7 +174,9 @@ input.failed {
 }
 
 @-webkit-keyframes sk-scaleout {
-    0% { -webkit-transform: scale(0) }
+    0% {
+        -webkit-transform: scale(0)
+    }
     100% {
         -webkit-transform: scale(1.0);
         opacity: 0;
@@ -185,9 +187,49 @@ input.failed {
     0% {
         -webkit-transform: scale(0);
         transform: scale(0);
-    } 100% {
-          -webkit-transform: scale(1.0);
-          transform: scale(1.0);
-          opacity: 0;
-      }
+    }
+    100% {
+        -webkit-transform: scale(1.0);
+        transform: scale(1.0);
+        opacity: 0;
+    }
+}
+
+.loading {
+    margin: 10px auto 0;
+    width: 100%;
+    text-align: center;
+}
+
+.loading > div {
+    width: 16px;
+    height: 16px;
+    background: #FF9A27;
+    border-radius: 100%;
+    display: inline-block;
+    animation: sk-bouncedelay 1.7s infinite ease-in-out both;
+    margin-right: 5px;
+}
+
+.loading .loading__item1 {
+    animation-delay: -0.60s;
+}
+
+.loading .loading__item2 {
+    animation-delay: -0.40s;
+}
+
+.loading .loading__item3 {
+    animation-delay: -0.20s;
+}
+
+@keyframes sk-bouncedelay {
+    0%, 80%, 100% {
+        transform: scale(0);
+        opacity: 0;
+    }
+    40% {
+        transform: scale(1.0);
+        opacity: 1;
+    }
 }

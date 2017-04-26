@@ -57,9 +57,10 @@ module.exports = (app, passport) => {
         }
     });
 
-    app.get('/getGames/:platform/:user', (req, res) => {
+    app.get('/importGames/:platform/:user/:userID', (req, res) => {
         const platform = req.params.platform;
         const username = req.params.user;
+        const uID = req.params.userID;
         switch (platform) {
             case 'xbox': {
                 getXboxUserId(username, (xuid, err) => {
@@ -77,7 +78,12 @@ module.exports = (app, passport) => {
                 checkSteamId(username, (resp, err) => {
                     if (!err) {
                         getSteamGames(resp.library, (games) => {
-                            res.send(games);
+                            User.findByIdAndUpdate(uID, {library: games}, {new: true}, (err) => {
+                                if (err) {
+                                    return handleError(err);
+                                }
+                                res.send(games);
+                            });
                         });
                     } else {
                         res.send(err.message);
@@ -140,6 +146,7 @@ module.exports = (app, passport) => {
     // check steam id validity. if valid return library
     const checkSteamId = (username, cb = null) => {
         username = encodeURIComponent(username.trim());
+        console.log(username);
         // Get steam user id with given username
         unirest.get(`http://api.steampowered.com/ISteamUser/ResolveVanityURL/v0001/?key=${process.env.STEAM_API}&vanityurl=${username}`)
             .end(function (response) {
@@ -180,23 +187,23 @@ module.exports = (app, passport) => {
             delay++;
             // Small delay so api doesn't get overloaded
             setTimeout(() => {
-                loop++;
+
                 getSteamGameInformation(game.appid, (game) => {
+                    loop++;
                     if (game) {
                         games.push(game);
                     }
                     console.log(loop + '/' + library.length);
-                });
 
-                // Final loop
-                if (loop === library.length) {
-                    console.log('Done');
-                    saveNewGamesToDb(games, () => {
-                        console.log('save');
-                        cb(games);
-                        return false;
-                    });
-                }
+                    // Final loop
+                    if (loop === library.length) {
+                        console.log('Done');
+                        saveNewGamesToDb(games, () => {
+                            console.log('save');
+                            cb(games);
+                        });
+                    }
+                });
             }, delay * 400);
         }
     };
@@ -204,23 +211,41 @@ module.exports = (app, passport) => {
     // Get single games information
     const getSteamGameInformation = (appid, cb) => {
         const platform = 'steam';
-        // Get game name for each game in library
-        unirest.get(`https://store.steampowered.com/api/appdetails?appids=${appid}`)
-            .end(function (response) {
-                if (response.body !== null && response.body[appid].success) {
-                    const gameName = response.body[appid].data.name;
-                    const game = {
-                        id: appid,
-                        platform: platform,
-                        name: gameName,
-                        playTime: 0,
-                        reviewScore: 0,
-                    };
-                    cb(game);
-                } else {
-                    cb(false);
-                }
-            });
+        // Only make a call if this game doesn't exist already
+        Game.findOne({steamID: appid}).then((data) => {
+            if (!data) {
+                // Get game name for each game in library
+                unirest.get(`https://store.steampowered.com/api/appdetails?appids=${appid}`)
+                    .end(function (response) {
+                        if (response.body !== null && response.body[appid].success) {
+                            const gameName = response.body[appid].data.name;
+                            console.log('NEW GAME ' + gameName);
+                            const game = {
+                                id: appid,
+                                platform: platform,
+                                name: gameName,
+                                playTime: 0,
+                                reviewScore: 0,
+                            };
+                            cb(game);
+                        } else {
+                            cb(false);
+                        }
+                    });
+            } else {
+                console.log('EXISTS ' + data.name);
+                const game = {
+                    id: data.steamID,
+                    platform: platform,
+                    name: data.name,
+                    playTime: 0,
+                    reviewScore: 0,
+                };
+                cb(game)
+            }
+        });
+
+
     };
 
 // Get xbox users id with username
@@ -405,8 +430,6 @@ module.exports = (app, passport) => {
                                     name: game.name,
                                     altNames: generateAltNames(game.name),
                                     xboxID: game.id,
-                                }).then(() => {
-                                    cb();
                                 });
                                 break;
                             }
@@ -415,8 +438,6 @@ module.exports = (app, passport) => {
                                     name: game.name,
                                     altNames: generateAltNames(game.name),
                                     steamID: game.id,
-                                }).then(() => {
-                                    cb();
                                 });
                                 break;
                             }
@@ -428,7 +449,7 @@ module.exports = (app, passport) => {
                         switch (game.platform) {
                             case 'xbox': {
                                 Game.findOne({xboxID: game.id}).then((data) => {
-                                    // If no game with this steamID is found then continue
+                                    // If no game with this xboxID is found then continue
                                     if (!data) {
                                         Game.findByIdAndUpdate(response._id, {xboxID: game.id}, {new: true}, (err) => {
                                             if (err) {
@@ -436,7 +457,10 @@ module.exports = (app, passport) => {
                                             }
                                         });
                                     }
-                                    cb();
+                                }, (err) => {
+                                    if (err) {
+                                        return handleError(err)
+                                    }
                                 });
                                 break;
                             }
@@ -449,8 +473,8 @@ module.exports = (app, passport) => {
                                                 return handleError(err);
                                             }
                                         });
+                                    } else {
                                     }
-                                    cb();
                                 });
                                 break;
                             }
@@ -461,7 +485,7 @@ module.exports = (app, passport) => {
                     }
                 });
             }
+            cb();
         }
     };
-}
-;
+};
