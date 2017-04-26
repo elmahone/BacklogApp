@@ -56,25 +56,38 @@
             </ul>
             <div class="tabs-content" data-tabs-content="library-tabs">
                 <div class="tabs-panel is-active" id="tab-all">
-                    <% user.library.forEach(function(game){
+                    <% user.steamLibrary.forEach(function(game){
                     if(!game.hidden) { %>
                     <div id="<%= game.id %>" data-platform="<%= game.platform %>">
                         <p><%= game.name %></p>
                     </div>
                     <% }}) %>
+                    <% user.xboxLibrary.forEach(function(game){ %>
+                    <div id="<%= game.id %>">
+                        <p><%= game.name %></p>
+                    </div>
+                    <% }) %>
                 </div>
                 <div class="tabs-panel is-active" id="tab-steam">
-                    <% user.library.forEach(function(game){ %>
-                    <div id="<%= game.id %>" data-platform="<%= game.platform %>">
+                    <% user.steamLibrary.forEach(function(game){ %>
+                    <div id="<%= game.id %>">
                         <p><%= game.name %></p>
                     </div>
                     <% }) %>
                 </div>
                 <div class="tabs-panel" id="tab-xbox">
-                    <p>Xbox games</p>
+                    <% user.xboxLibrary.forEach(function(game){ %>
+                    <div id="<%= game.id %>">
+                        <p><%= game.name %></p>
+                    </div>
+                    <% }) %>
                 </div>
                 <div class="tabs-panel" id="tab-other">
-                    <p>Other games</p>
+                    <% user.library.forEach(function (game) { %>
+                    <div id="<%= game.id %>" data-platform="<%= game.platform %>">
+                        <p><%= game.name %></p>
+                    </div>
+                    <% }) %>
                 </div>
             </div>
         </fieldset>

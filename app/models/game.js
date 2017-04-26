@@ -6,9 +6,9 @@ mongoose.Promise = global.Promise; // ES6 promise
 const gameSchema = new Schema({
     name: String,
     altNames: [String],
-    igdbID: Number,
-    steamID: Number,
-    xboxID: Number,
+    igdbID: String,
+    steamID: String,
+    xboxID: String,
 });
 
 module.exports = mongoose.model('Game', gameSchema);

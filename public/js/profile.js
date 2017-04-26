@@ -107,7 +107,23 @@ const saveUsername = (platform, userInfo, cb) => {
 if (document.getElementById('import-xbox')) {
     const importXbox = document.getElementById('import-xbox');
     importXbox.addEventListener('click', () => {
-
+        importXboxWrap.innerHTML = `
+                <div class="loading">
+                <b>Importing Xbox library. Please Wait</b>
+                <br>
+                <div class="loading__item1"></div>
+                <div class="loading__item2"></div>
+                <div class="loading__item3"></div>
+                <div class="loading__item4"></div>
+                </div>`;
+        const request = new Request(`/importGames/xbox/${xboxUserField.value}/${userId}`);
+        fetch(request).then((res) => {
+            if (!res.ok) {
+                console.log('err');
+            } else {
+                importXboxWrap.innerHTML = '<a id="import-xbox">Import Xbox library</a>';
+            }
+        })
     });
 }
 if (document.getElementById('import-steam')) {
@@ -128,8 +144,7 @@ if (document.getElementById('import-steam')) {
             if (!res.ok) {
                 console.log('err');
             } else {
-                importSteamWrap.innerHTML =
-                    importSteam.classList.remove('hide');
+                importSteamWrap.innerHTML = '<a id="import-steam">Import Steam library</a>';
             }
         })
     });

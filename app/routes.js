@@ -63,10 +63,15 @@ module.exports = (app, passport) => {
         const uID = req.params.userID;
         switch (platform) {
             case 'xbox': {
-                getXboxUserId(username, (xuid, err) => {
+                getXboxUserId(username, (resp, err) => {
                     if (!err) {
-                        getXboxGames(xuid, (games) => {
-                            res.send(games);
+                        getXboxGames(resp.user, (games) => {
+                            User.findByIdAndUpdate(uID, {xboxLibrary: games}, {new: true}, (err) => {
+                                if (err) {
+                                    res.send(err);
+                                }
+                                res.send(games);
+                            });
                         })
                     } else {
                         res.send(err);
@@ -78,9 +83,9 @@ module.exports = (app, passport) => {
                 checkSteamId(username, (resp, err) => {
                     if (!err) {
                         getSteamGames(resp.library, (games) => {
-                            User.findByIdAndUpdate(uID, {library: games}, {new: true}, (err) => {
+                            User.findByIdAndUpdate(uID, {steamLibrary: games}, {new: true}, (err) => {
                                 if (err) {
-                                    return handleError(err);
+                                    res.send(err);
                                 }
                                 res.send(games);
                             });
@@ -198,7 +203,7 @@ module.exports = (app, passport) => {
                     // Final loop
                     if (loop === library.length) {
                         console.log('Done');
-                        saveNewGamesToDb(games, () => {
+                        saveNewGamesToDb(games, 'steam', () => {
                             console.log('save');
                             cb(games);
                         });
@@ -222,7 +227,6 @@ module.exports = (app, passport) => {
                             console.log('NEW GAME ' + gameName);
                             const game = {
                                 id: appid,
-                                platform: platform,
                                 name: gameName,
                                 playTime: 0,
                                 reviewScore: 0,
@@ -236,7 +240,6 @@ module.exports = (app, passport) => {
                 console.log('EXISTS ' + data.name);
                 const game = {
                     id: data.steamID,
-                    platform: platform,
                     name: data.name,
                     playTime: 0,
                     reviewScore: 0,
@@ -283,12 +286,12 @@ module.exports = (app, passport) => {
         unirest.get('https://xboxapi.com/v2/' + xuid + '/xboxonegames')
             .headers({'X-Auth': process.env.XBOX_API})
             .end(function (response) {
+                console.log(response.body);
                 const library = response.body.titles;
                 for (const game of library) {
                     if (game.maxGamerscore !== 0) {
                         games.push({
                             id: game.titleId.toString(16), // Convert to game id hash
-                            platform: platform,
                             name: game.name,
                             playTime: 0,
                             reviewScore: 0,
@@ -304,12 +307,14 @@ module.exports = (app, passport) => {
         unirest.get('https://xboxapi.com/v2/' + xuid + '/xbox360games')
             .headers({'X-Auth': process.env.XBOX_API})
             .end(function (response) {
+                console.log(response.body);
                 const library = response.body.titles;
+                let loop = 0;
                 for (const game of library) {
+                    loop++;
                     if (game.totalGamerscore !== 0) {
                         games.push({
                             id: game.titleId.toString(16), // Convert to game id hash
-                            platform: platform,
                             name: game.name,
                             playTime: 0,
                             reviewScore: 0,
@@ -318,9 +323,110 @@ module.exports = (app, passport) => {
                 }
                 x360Ready = true;
                 if (xboneReady && x360Ready) {
-                    cb(games);
+                    saveNewGamesToDb(games, platform, () => {
+
+                        cb(games);
+                    });
                 }
             });
+    };
+
+
+    const isGameInDb = (gameName, cb) => {
+        Game.findOne({
+            name: {
+                $regex: new RegExp(gameName, 'i')
+            }
+        }).then((json) => {
+            if (json) {
+                cb(json);
+            } else {
+                const altNames = generateAltNames(gameName);
+                Game.findOne({
+                    altNames: {
+                        $regex: new RegExp(altNames, 'i')
+                    }
+                }).then((json) => {
+                    if (json) {
+                        cb(json);
+                    } else {
+                        cb(null);
+                    }
+                });
+            }
+        });
+    };
+
+    const saveNewGamesToDb = (games, platform, cb) => {
+        console.log(games);
+        if (games.length >= 1) {
+            for (const game of games) {
+                isGameInDb(game.name, (response) => {
+                    if (!response) {
+                        console.log('NOT IN DB ' + game.name);
+                        switch (platform) {
+                            case 'xbox': {
+                                Game.create({
+                                    name: game.name,
+                                    altNames: generateAltNames(game.name),
+                                    xboxID: game.id,
+                                });
+                                break;
+                            }
+                            case 'steam': {
+                                Game.create({
+                                    name: game.name,
+                                    altNames: generateAltNames(game.name),
+                                    steamID: game.id,
+                                });
+                                break;
+                            }
+                            default: {
+                                break;
+                            }
+                        }
+                    } else {
+                        switch (platform) {
+                            case 'xbox': {
+                                Game.findOne({xboxID: game.id}).then((data) => {
+                                    // If no game with this xboxID is found then continue
+                                    if (!data) {
+                                        Game.findByIdAndUpdate(response._id, {xboxID: game.id}, {new: true}, (err) => {
+                                            if (err) {
+                                                return handleError(err);
+                                            }
+                                        });
+                                    }
+                                }, (err) => {
+                                    if (err) {
+                                        return handleError(err)
+                                    }
+                                });
+                                break;
+                            }
+                            case 'steam': {
+                                Game.findOne({steamID: game.id}).then((data) => {
+                                    // If no game with this steamID is found then continue
+                                    if (!data) {
+                                        Game.findByIdAndUpdate(response._id, {steamID: game.id}, {new: true}, (err) => {
+                                            if (err) {
+                                                return handleError(err);
+                                            }
+                                        });
+                                    } else {
+                                    }
+                                });
+                                break;
+                            }
+                            default: {
+                                break;
+                            }
+                        }
+                    }
+                });
+            }
+            cb();
+        }
     };
 
     const isRomanNumeral = (val) => {
@@ -365,7 +471,6 @@ module.exports = (app, passport) => {
             return null;
         }
     };
-
     const generateAltNames = (name) => {
         let altNames = [];
         let strippedName = name.replace(/\./g, '').replace(/\'/g, '').replace(/[^\w\s!?]/g, ' ').replace('_', ' ').replace(/  +/g, ' ');
@@ -389,103 +494,6 @@ module.exports = (app, passport) => {
             return altNames;
         } else {
             return null;
-        }
-    };
-
-    const isGameInDb = (gameName, cb) => {
-        Game.findOne({
-            name: {
-                $regex: new RegExp(gameName, 'i')
-            }
-        }).then((json) => {
-            if (json) {
-                cb(json);
-            } else {
-                const altNames = generateAltNames(gameName);
-                Game.findOne({
-                    altNames: {
-                        $regex: new RegExp(altNames, 'i')
-                    }
-                }).then((json) => {
-                    if (json) {
-                        cb(json);
-                    } else {
-                        cb(null);
-                    }
-                });
-            }
-        });
-    };
-
-    const saveNewGamesToDb = (games, cb) => {
-        console.log(games);
-        if (games.length >= 1) {
-            for (const game of games) {
-                isGameInDb(game.name, (response) => {
-                    if (!response) {
-                        console.log('NOT IN DB ' + game.name);
-                        switch (game.platform) {
-                            case 'xbox': {
-                                Game.create({
-                                    name: game.name,
-                                    altNames: generateAltNames(game.name),
-                                    xboxID: game.id,
-                                });
-                                break;
-                            }
-                            case 'steam': {
-                                Game.create({
-                                    name: game.name,
-                                    altNames: generateAltNames(game.name),
-                                    steamID: game.id,
-                                });
-                                break;
-                            }
-                            default: {
-                                break;
-                            }
-                        }
-                    } else {
-                        switch (game.platform) {
-                            case 'xbox': {
-                                Game.findOne({xboxID: game.id}).then((data) => {
-                                    // If no game with this xboxID is found then continue
-                                    if (!data) {
-                                        Game.findByIdAndUpdate(response._id, {xboxID: game.id}, {new: true}, (err) => {
-                                            if (err) {
-                                                return handleError(err);
-                                            }
-                                        });
-                                    }
-                                }, (err) => {
-                                    if (err) {
-                                        return handleError(err)
-                                    }
-                                });
-                                break;
-                            }
-                            case 'steam': {
-                                Game.findOne({steamID: game.id}).then((data) => {
-                                    // If no game with this steamID is found then continue
-                                    if (!data) {
-                                        Game.findByIdAndUpdate(response._id, {steamID: game.id}, {new: true}, (err) => {
-                                            if (err) {
-                                                return handleError(err);
-                                            }
-                                        });
-                                    } else {
-                                    }
-                                });
-                                break;
-                            }
-                            default: {
-                                break;
-                            }
-                        }
-                    }
-                });
-            }
-            cb();
         }
     };
 };

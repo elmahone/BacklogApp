@@ -18,11 +18,28 @@ const userSchema = new Schema({
     library: [
         {
             id: String,
-            platform: String,
             name: String,
             playTime: Number,
             reviewScore: Number,
-            hidden: boolean,
+            hidden: Boolean,
+        }
+    ],
+    xboxLibrary: [
+        {
+            id: String,
+            name: String,
+            playTime: Number,
+            reviewScore: Number,
+            hidden: Boolean,
+        }
+    ],
+    steamLibrary: [
+        {
+            id: String,
+            name: String,
+            playTime: Number,
+            reviewScore: Number,
+            hidden: Boolean,
         }
     ],
     backlog: [
