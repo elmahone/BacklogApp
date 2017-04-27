@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Lag Log | Backlog</title>
+    <link rel="stylesheet" href="public/css/font-awesome.min.css">
+    <link rel="stylesheet" href="public/css/foundation.min.css">
+    <link rel="stylesheet" href="public/css/app.css">
+</head>
+<body>
+<header>
+    <% include ../partials/header.ejs %>
+</header>
+<main>
+    <div id="content">
+        <h1>Backlog</h1>
+
+        <ul>
+            <% user.backlog.forEach(function(game) { %>
+            <li><%= game.name %></li>
+
+            <% }) %>
+        </ul>
+    </div>
+</main>
+
+<footer>
+    <% include ../partials/footer.ejs %>
+</footer>
+
+<script src="vendor/jquery/dist/jquery.min.js"></script>
+<script src="public/js/vendor/foundation.js"></script>
+<script src="public/js/vendor/what-input.js"></script>
+<script src="public/js/app.js"></script>
+<script>$(document).foundation();</script>
+</body>
+</html>

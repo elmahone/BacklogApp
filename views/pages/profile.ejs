@@ -36,8 +36,8 @@
             <div class="input-group">
                 <input type="text" class="input-group-field" id="xbox-user" placeholder="Xbox Gamertag"
                        value="<%= user.xboxuser.name %>">
-                <a id="save-xboxuser" type="submit" class="button input-group-button"><i class="fa fa-save"
-                                                                                         aria-hidden="true"></i></a>
+                <a id="save-xboxuser" class="button input-group-button"><i class="fa fa-save"
+                                                                           aria-hidden="true"></i></a>
             </div>
             <div id="import-xbox-button">
                 <% if(user.xboxuser.id){ %>
@@ -56,38 +56,84 @@
             </ul>
             <div class="tabs-content" data-tabs-content="library-tabs">
                 <div class="tabs-panel is-active" id="tab-all">
-                    <% user.steamLibrary.forEach(function(game){
+
+                    <% user.library.forEach(function(game){
                     if(!game.hidden) { %>
-                    <div id="<%= game.id %>" data-platform="<%= game.platform %>">
+                    <div id="all-<%= game.id %>" data-platform="other" data-game="<%= JSON.stringify(game) %>"
+                         class="game-container">
                         <p><%= game.name %></p>
+                        <button class="button success backlog-add">Add to backlog</button>
+                        <button class="button alert">Hide</button>
+                        <hr>
                     </div>
                     <% }}) %>
-                    <% user.xboxLibrary.forEach(function(game){ %>
-                    <div id="<%= game.id %>">
+
+                    <% user.steamLibrary.forEach(function(game){
+                    if(!game.hidden) { %>
+                    <div id="all-<%= game.id %>" data-platform="steam" data-game="<%= JSON.stringify(game) %>"
+                         class="game-container">
                         <p><%= game.name %></p>
+                        <button class="button success backlog-add">Add to backlog</button>
+                        <button class="button alert">Hide</button>
+                        <hr>
                     </div>
-                    <% }) %>
+                    <% }}) %>
+
+                    <% user.xboxLibrary.forEach(function(game){
+                    if(!game.hidden) { %>
+                    <div id="all-<%= game.id %>" data-platform="xbox" data-game="<%= JSON.stringify(game) %>"
+                         class="game-container">
+                        <p><%= game.name %></p>
+                        <button class="button success backlog-add">Add to backlog</button>
+                        <button class="button alert">Hide</button>
+                        <hr>
+                    </div>
+                    <% }}) %>
+
                 </div>
                 <div class="tabs-panel is-active" id="tab-steam">
-                    <% user.steamLibrary.forEach(function(game){ %>
-                    <div id="<%= game.id %>">
+
+                    <% user.steamLibrary.forEach(function(game){
+                    if(!game.hidden) { %>
+                    <div id="steam-<%= game.id %>" data-platform="steam" data-game="<%= JSON.stringify(game) %>"
+                         class="game-container">
                         <p><%= game.name %></p>
+                        <button class="button success backlog-add">Add to backlog</button>
+                        <button class="button alert">Hide</button>
+                        <hr>
                     </div>
-                    <% }) %>
+                    <% }}) %>
+
                 </div>
                 <div class="tabs-panel" id="tab-xbox">
-                    <% user.xboxLibrary.forEach(function(game){ %>
-                    <div id="<%= game.id %>">
+
+                    <% user.xboxLibrary.forEach(function(game){
+                    if(!game.hidden) { %>
+                    <div id="xbox-<%= game.id %>" data-platform="xbox" data-game="<%= JSON.stringify(game) %>"
+                         class="game-container">
                         <p><%= game.name %></p>
+                        <button class="button success backlog-add">Add to backlog</button>
+                        <button class="button alert">Hide</button>
+                        <hr>
                     </div>
-                    <% }) %>
+
+                    <% }}) %>
+
                 </div>
                 <div class="tabs-panel" id="tab-other">
-                    <% user.library.forEach(function (game) { %>
-                    <div id="<%= game.id %>" data-platform="<%= game.platform %>">
+
+                    <% user.library.forEach(function (game) {
+                    if(!game.hidden) { %>
+                    <div id="other-<%= game.id %>" data-platform="other" data-game="<%= JSON.stringify(game) %>"
+                         class="game-container">
                         <p><%= game.name %></p>
+                        <button class="button success backlog-add">Add to backlog</button>
+                        <button class="button alert">Hide</button>
+                        <hr>
                     </div>
-                    <% }) %>
+
+                    <% }}) %>
+
                 </div>
             </div>
         </fieldset>

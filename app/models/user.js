@@ -21,7 +21,7 @@ const userSchema = new Schema({
             name: String,
             playTime: Number,
             reviewScore: Number,
-            hidden: Boolean,
+            hidden: {type: Boolean, default: false}
         }
     ],
     xboxLibrary: [
@@ -30,7 +30,7 @@ const userSchema = new Schema({
             name: String,
             playTime: Number,
             reviewScore: Number,
-            hidden: Boolean,
+            hidden: {type: Boolean, default: false},
         }
     ],
     steamLibrary: [
@@ -39,7 +39,7 @@ const userSchema = new Schema({
             name: String,
             playTime: Number,
             reviewScore: Number,
-            hidden: Boolean,
+            hidden: {type: Boolean, default: false}
         }
     ],
     backlog: [
@@ -49,9 +49,8 @@ const userSchema = new Schema({
             name: String,
             playTime: Number,
             reviewScore: Number,
-            listIndex: Number,
+            listIndex: {type: Date, default: Date.now},
         }
     ]
 });
-
 module.exports = mongoose.model('User', userSchema);

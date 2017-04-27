@@ -149,3 +149,40 @@ if (document.getElementById('import-steam')) {
         })
     });
 }
+
+const addToBacklogBtns = document.getElementsByClassName('backlog-add');
+const addToBacklog = (e) => {
+    const game = JSON.parse(e.target.parentNode.dataset.game);
+    const platform = e.target.parentNode.dataset.platform;
+    e.target.setAttribute('disabled', 'disabled');
+    console.log(game.id);
+    // $('#all-' + game.id).fadeOut();
+    // $('#xbox-' + game.id).fadeOut();
+    // $('#steam-' + game.id).fadeOut();
+    // $('#other-' + game.id).fadeOut();
+    const req = new Request('/addToBacklog');
+    fetch(req, {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({userId: userId, game: JSON.stringify(game), platform: platform}),
+    }).then((res) => {
+        if (!res.ok) {
+            console.log('err');
+            e.target.removeAttribute('disabled');
+        } else {
+            console.log(res);
+            console.log(e.target.parentNode.id);
+            $('#all-' + game.id).fadeOut();
+            $('#xbox-' + game.id).fadeOut();
+            $('#steam-' + game.id).fadeOut();
+            $('#other-' + game.id).fadeOut();
+        }
+
+    })
+};
+for (const btn of addToBacklogBtns) {
+    btn.addEventListener('click', addToBacklog);
+}

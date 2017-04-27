@@ -6,6 +6,7 @@ const Game = require('./models/game');
 
 module.exports = (app, passport) => {
 
+    // INDEX ROUTE
     app.get('/', (req, res) => {
         if (req.isAuthenticated()) {
             res.render('pages/index', {
@@ -19,7 +20,7 @@ module.exports = (app, passport) => {
             });
         }
     });
-
+    // PROFILE ROUTE
     app.get('/profile', (req, res) => {
         if (req.isAuthenticated()) {
             res.render('pages/profile', {
@@ -29,7 +30,17 @@ module.exports = (app, passport) => {
             res.redirect('/');
         }
     });
-
+    // BACKLOG ROUTE
+    app.get('/backlog', (req, res) => {
+        if (req.isAuthenticated()) {
+            res.render('pages/backlog', {
+                user: req.user
+            });
+        } else {
+            res.redirect('/');
+        }
+    });
+    // Checks if username exists on selected platform
     app.get('/validateUsername/:platform/:user', (req, res) => {
         const platform = req.params.platform;
         const username = req.params.user;
@@ -56,16 +67,19 @@ module.exports = (app, passport) => {
             }
         }
     });
-
+    // Import game library from selected platform
     app.get('/importGames/:platform/:user/:userID', (req, res) => {
         const platform = req.params.platform;
         const username = req.params.user;
         const uID = req.params.userID;
         switch (platform) {
             case 'xbox': {
+                // Check if username exists
                 getXboxUserId(username, (resp, err) => {
                     if (!err) {
+                        // Get all games from XboxAPI
                         getXboxGames(resp.user, (games) => {
+                            // Save library to users xboxLibrary
                             User.findByIdAndUpdate(uID, {xboxLibrary: games}, {new: true}, (err) => {
                                 if (err) {
                                     res.send(err);
@@ -80,9 +94,13 @@ module.exports = (app, passport) => {
                 break;
             }
             case 'steam': {
+                // Check if steam account exists
                 checkSteamId(username, (resp, err) => {
                     if (!err) {
+                        // Import game library from Steam Web API
+                        // and loop through it getting each games name
                         getSteamGames(resp.library, (games) => {
+                            // Save games to users steamLibrary
                             User.findByIdAndUpdate(uID, {steamLibrary: games}, {new: true}, (err) => {
                                 if (err) {
                                     res.send(err);
@@ -101,30 +119,42 @@ module.exports = (app, passport) => {
             }
         }
     });
-
-    app.get('/findUser/:user', (req, res) => {
-        const newUser = req.params.user;
-        User.findOne({
-            username: {
-                $regex: new RegExp(newUser, 'i')
-            }
-        }).then((json) => {
-            res.send(json);
-        });
+    // Add game to backlog and hide it from library
+    app.post('/addToBacklog', (req, res) => {
+        const user = req.body.userId;
+        const game = JSON.parse(req.body.game);
+        console.log(game['id']);
+        const addedGame = {
+            id: game['id'],
+            name: game['name'],
+            platform: req.body.platform,
+            playTime: game['playTime'],
+            reviewScore: game['reviewScore'],
+        };
+        User.findByIdAndUpdate(user, {$push: {backlog: addedGame}}, {new: true})
+            .then(() => {
+                console.log('saved?');
+                hideGameFromLibrary(user, game['id'], req.body.platform, () => {
+                    res.sendStatus(200);
+                });
+            });
     });
 
+    // Logout route
     app.get('/logout', (req, res) => {
         req.logout();
         req.session.destroy();
         res.redirect('/');
     });
 
+    // Passport register
     app.post('/register', passport.authenticate('local-register', {
         successRedirect: '/profile',
         failureRedirect: '/',
         failureFlash: true,
     }));
 
+    // Passport login
     app.post('/login', passport.authenticate('local-login', {
         successRedirect: '/profile',
         failureRedirect: '/',
@@ -332,6 +362,8 @@ module.exports = (app, passport) => {
     };
 
 
+    // Check if game with name exists already
+    // Also check with alternate names
     const isGameInDb = (gameName, cb) => {
         Game.findOne({
             name: {
@@ -357,8 +389,46 @@ module.exports = (app, passport) => {
         });
     };
 
+    // change games hidden property to true
+    const hideGameFromLibrary = (userId, gameId, platform, cb) => {
+        switch (platform) {
+            case 'xbox': {
+                User.update({
+                    _id: userId,
+                    'xboxLibrary.id': gameId
+                }, {$set: {'xboxLibrary.$.hidden': true}}, {new: true}, (err, res) => {
+                    cb();
+                });
+                break;
+            }
+            case 'steam': {
+                User.update({
+                    _id: userId,
+                    'steamLibrary.id': gameId
+                }, {$set: {'steamLibrary.$.hidden': true}}, {new: true}, (err, res) => {
+                    cb();
+                });
+                break;
+            }
+            case 'other': {
+                User.update({
+                    _id: userId,
+                    'library.id': gameId
+                }, {$set: {'library.$.hidden': true}}, {new: true}, (err, res) => {
+                    cb();
+                });
+                break;
+            }
+            default: {
+                break;
+            }
+        }
+    };
+
+    // Save games to Games collection if it doesn't exist already
+    // If game exists, check if it has an id for this platform
+    // If not add the id to the game.
     const saveNewGamesToDb = (games, platform, cb) => {
-        console.log(games);
         if (games.length >= 1) {
             for (const game of games) {
                 isGameInDb(game.name, (response) => {
@@ -429,6 +499,7 @@ module.exports = (app, passport) => {
         }
     };
 
+    // TOOLS =======================================
     const isRomanNumeral = (val) => {
         return /^M{0,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})$/.test(val);
     };
