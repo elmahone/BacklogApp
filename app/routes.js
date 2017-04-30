@@ -34,7 +34,8 @@ module.exports = (app, passport) => {
     app.get('/backlog', (req, res) => {
         if (req.isAuthenticated()) {
             res.render('pages/backlog', {
-                user: req.user
+                user: req.user,
+                backlog: orderBacklog(req.user.backlog),
             });
         } else {
             res.redirect('/');
@@ -176,6 +177,10 @@ module.exports = (app, passport) => {
         });
     });
 
+    app.patch('/saveNewOrder', (req, res) => {
+        saveNewOrder(req.body.userId, req.body.newOrder);
+    });
+
     // FUNCTIONS =============================
 
     // check steam id validity. if valid return library
@@ -281,7 +286,7 @@ module.exports = (app, passport) => {
 
     };
 
-// Get xbox users id with username
+    // Get xbox users id with username
     const getXboxUserId = (username, cb = null) => {
         username = encodeURIComponent(username.trim());
         unirest.get('https://xboxapi.com/v2/xuid/' + username)
@@ -305,7 +310,7 @@ module.exports = (app, passport) => {
             });
     };
 
-// Get xbox users games library with id
+    // Get xbox users games library with id
     const getXboxGames = (xuid, cb) => {
         const platform = 'xbox';
         let xboneReady = false;
@@ -360,7 +365,6 @@ module.exports = (app, passport) => {
                 }
             });
     };
-
 
     // Check if game with name exists already
     // Also check with alternate names
@@ -497,6 +501,37 @@ module.exports = (app, passport) => {
             }
             cb();
         }
+    };
+
+    // Save the new order of backlog list to db
+    const saveNewOrder = (userId, newOrder) => {
+        for (let i = newOrder.length; i >= 0; i--) {
+            User.update({
+                _id: userId,
+                'backlog.id': newOrder[i]
+            }, {$set: {'backlog.$.listIndex': i}}, {new: true}, (err, res) => {
+                if (err) {
+                    console.log(err);
+                }
+                console.log(res);
+            });
+        }
+    };
+
+    const orderBacklog = (backlog) => {
+        return backlog.sort((a, b) => {
+            const itemA = a.listIndex;
+            const itemB = b.listIndex;
+            if (itemA < itemB) {
+                return -1;
+            }
+            if (itemA > itemB) {
+                return 1;
+            }
+
+            // names must be equal
+            return 0;
+        });
     };
 
     // TOOLS =======================================

@@ -15,13 +15,12 @@
 <main>
     <div id="content">
         <h1>Backlog</h1>
-
-        <ul>
+        <input id="user-id" type="hidden" value="<%= user.id %>">
+        <div id="backlog-list">
             <% user.backlog.forEach(function(game) { %>
-            <li><%= game.name %></li>
-
+            <div id="<%= game.id %>"><%= game.name %></div>
             <% }) %>
-        </ul>
+        </div>
     </div>
 </main>
 
@@ -30,9 +29,11 @@
 </footer>
 
 <script src="vendor/jquery/dist/jquery.min.js"></script>
+<script src="vendor/sortablejs/Sortable.js"></script>
 <script src="public/js/vendor/foundation.js"></script>
 <script src="public/js/vendor/what-input.js"></script>
 <script src="public/js/app.js"></script>
+<script src="public/js/backlog.js"></script>
 <script>$(document).foundation();</script>
 </body>
 </html>

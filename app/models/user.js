@@ -49,7 +49,7 @@ const userSchema = new Schema({
             name: String,
             playTime: Number,
             reviewScore: Number,
-            listIndex: {type: Date, default: Date.now},
+            listIndex: Number,
         }
     ]
 });

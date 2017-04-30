@@ -29,8 +29,7 @@ saveSteamUserBtn.addEventListener('click', () => {
                 // If username is OK save it to database
                 saveUsername('steam', userInfo, () => {
                     if (!document.getElementById('import-xbox')) {
-                        importSteamWrap.innerHTML = '<a id="import-steam">Import Steam library</a>';
-                        // initImportListeners();
+                        location.reload();
                     }
                 })
             }
@@ -57,8 +56,7 @@ saveXboxUserBtn.addEventListener('click', () => {
                 // If username is OK save it to database
                 saveUsername('xbox', userInfo, () => {
                     if (!document.getElementById('import-xbox')) {
-                        importXboxWrap.innerHTML = '<a id="import-xbox">Import Xbox library</a>';
-                        // initImportListeners();
+                        location.reload();
                     }
                 })
             }
@@ -121,7 +119,7 @@ if (document.getElementById('import-xbox')) {
             if (!res.ok) {
                 console.log('err');
             } else {
-                importXboxWrap.innerHTML = '<a id="import-xbox">Import Xbox library</a>';
+                location.reload();
             }
         })
     });
@@ -144,7 +142,7 @@ if (document.getElementById('import-steam')) {
             if (!res.ok) {
                 console.log('err');
             } else {
-                importSteamWrap.innerHTML = '<a id="import-steam">Import Steam library</a>';
+                location.reload();
             }
         })
     });
