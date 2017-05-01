@@ -15,17 +15,10 @@ const confirmPassword = document.getElementById('confirm-password');
 const submitSignup = document.getElementById('submit-signup');
 const submitLogin = document.getElementById('submit-login');
 
-signupForm.addEventListener('submit', () => {
-    submitSignup.setAttribute('disabled', 'disabled');
-});
-loginForm.addEventListener('submit', () => {
-    submitLogin.setAttribute('disabled', 'disabled');
-});
-
 if ($('#error-message')) {
     setTimeout(() => {
         $('#error-message').fadeOut();
-    }, 3000)
+    }, 3000);
 }
 
 // Checks if confirm password and password values are same
@@ -36,6 +29,16 @@ const validatePassword = () => {
         confirmPassword.setCustomValidity('');
     }
 };
-// Validate password while typing passwords
-signupPassword.onchange = validatePassword;
-confirmPassword.onkeyup = validatePassword;
+
+if (signupForm && loginForm) {
+    signupForm.addEventListener('submit', () => {
+        submitSignup.setAttribute('disabled', 'disabled');
+    });
+    // Validate password while typing passwords
+    signupPassword.onchange = validatePassword;
+    confirmPassword.onkeyup = validatePassword;
+
+    loginForm.addEventListener('submit', () => {
+        submitLogin.setAttribute('disabled', 'disabled');
+    });
+}
