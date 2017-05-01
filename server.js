@@ -35,6 +35,10 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use(flash());
 
+app.use('/', require('./app/routes/mainRoutes')(app, passport));
+app.use('/profile', require('./app/routes/profileRoutes'));
+app.use('/backlog', require('./app/routes/backlogRoutes'));
+
 if (process.env.ENV === 'dev') {
     const sslkey = fs.readFileSync('ssl-key.pem');
     const sslcert = fs.readFileSync('ssl-cert.pem');
@@ -68,4 +72,3 @@ mongoose.connect(`mongodb://${process.env.DB_USER}:${process.env.DB_PASS}@${proc
     console.log('failed: ' + err);
 });
 
-require('./app/routes')(app, passport);

@@ -26,7 +26,7 @@ saveSteamUserBtn.addEventListener('click', () => {
                 const userInfo = {id: res, name: username};
                 // If username is OK save it to database
                 saveUsername('steam', userInfo, () => {
-                    if (!document.getElementById('import-xbox')) {
+                    if (!document.getElementById('import-steam')) {
                         location.reload();
                     }
                 })
@@ -56,14 +56,14 @@ saveXboxUserBtn.addEventListener('click', () => {
                     if (!document.getElementById('import-xbox')) {
                         location.reload();
                     }
-                })
+                });
             }
         });
     }
 });
 
 const validateUsername = (platform, username, cb) => {
-    const req = new Request(`/validateUsername/${platform}/${username}`);
+    const req = new Request(`/profile/validateUsername/${platform}/${username}`);
     fetch(req).then((res) => {
         console.log(res);
         if (!res.ok) {
@@ -82,7 +82,7 @@ const validateUsername = (platform, username, cb) => {
 };
 
 const saveUsername = (platform, userInfo, cb) => {
-    const req = new Request(`/savePlatformUsername`);
+    const req = new Request('/profile/savePlatformUsername');
     fetch(req, {
         method: 'PATCH',
         headers: {
@@ -96,7 +96,7 @@ const saveUsername = (platform, userInfo, cb) => {
         } else {
             cb();
         }
-    })
+    });
 };
 
 // const initImportListeners = () => {
@@ -112,7 +112,7 @@ if (document.getElementById('import-xbox')) {
                 <div class="loading__item3"></div>
                 <div class="loading__item4"></div>
                 </div>`;
-        const request = new Request(`/importGames/xbox/${xboxUserField.value}/${userId}`);
+        const request = new Request(`/profile/importGames/xbox/${xboxUserField.value}/${userId}`);
         fetch(request).then((res) => {
             if (!res.ok) {
                 console.log('err');
@@ -164,7 +164,7 @@ const addToBacklog = (e) => {
     const platform = e.target.parentNode.dataset.platform;
     e.target.setAttribute('disabled', 'disabled');
     console.log(game.id);
-    const req = new Request('/addToBacklog');
+    const req = new Request('/profile/addToBacklog');
     fetch(req, {
         method: 'POST',
         headers: {
@@ -182,7 +182,7 @@ const hideFromLibrary = (e) => {
     const platform = e.target.parentNode.dataset.platform;
     e.target.setAttribute('disabled', 'disabled');
     console.log(game.id);
-    const req = new Request('/showOrHideFromLibrary');
+    const req = new Request('/profile/showOrHideFromLibrary');
     fetch(req, {
         method: 'PATCH',
         headers: {
@@ -200,7 +200,7 @@ const showInLibrary = (e) => {
     const platform = e.target.parentNode.dataset.platform;
     e.target.setAttribute('disabled', 'disabled');
     console.log(game.id);
-    const req = new Request('/showOrHideFromLibrary');
+    const req = new Request('/profile/showOrHideFromLibrary');
     fetch(req, {
         method: 'PATCH',
         headers: {
