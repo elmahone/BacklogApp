@@ -21,7 +21,7 @@ const userSchema = new Schema({
             name: String,
             playTime: Number,
             reviewScore: Number,
-            hidden: {type: Boolean, default: false}
+            hidden: {type: Boolean, default: false},
         }
     ],
     xboxLibrary: [
@@ -39,7 +39,7 @@ const userSchema = new Schema({
             name: String,
             playTime: Number,
             reviewScore: Number,
-            hidden: {type: Boolean, default: false}
+            hidden: {type: Boolean, default: false},
         }
     ],
     backlog: [

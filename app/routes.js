@@ -1,6 +1,5 @@
 'use strict';
 const unirest = require('unirest');
-const path = require('path');
 const User = require('./models/user');
 const Game = require('./models/game');
 
@@ -23,8 +22,10 @@ module.exports = (app, passport) => {
     // PROFILE ROUTE
     app.get('/profile', (req, res) => {
         if (req.isAuthenticated()) {
+            const hiddenLibraries = getHiddenGamesNotInBacklog(req.user);
             res.render('pages/profile', {
-                user: req.user
+                user: req.user,
+                hiddenGames: hiddenLibraries,
             });
         } else {
             res.redirect('/');
@@ -87,7 +88,7 @@ module.exports = (app, passport) => {
                                 }
                                 res.send(games);
                             });
-                        })
+                        });
                     } else {
                         res.send(err);
                     }
@@ -124,7 +125,6 @@ module.exports = (app, passport) => {
     app.post('/addToBacklog', (req, res) => {
         const user = req.body.userId;
         const game = JSON.parse(req.body.game);
-        console.log(game['id']);
         const addedGame = {
             id: game['id'],
             name: game['name'],
@@ -135,7 +135,7 @@ module.exports = (app, passport) => {
         User.findByIdAndUpdate(user, {$push: {backlog: addedGame}}, {new: true})
             .then(() => {
                 console.log('saved?');
-                hideGameFromLibrary(user, game['id'], req.body.platform, () => {
+                showOrHideGameFromLibrary(true, user, game['id'], req.body.platform, () => {
                     res.sendStatus(200);
                 });
             });
@@ -171,14 +171,20 @@ module.exports = (app, passport) => {
         }
         User.findByIdAndUpdate(req.body.userId, updateObj, {new: true}, (err) => {
             if (err) {
-                return handleError(err);
+                return;
             }
             res.sendStatus(200);
         });
     });
 
-    app.patch('/saveNewOrder', (req, res) => {
+    app.patch('/saveNewOrder', (req) => {
         saveNewOrder(req.body.userId, req.body.newOrder);
+    });
+    app.patch('/showOrHideFromLibrary', (req, res) => {
+        const body = req.body;
+        showOrHideGameFromLibrary(body.hide, body.userId, body.gameId, body.platform, () => {
+            res.sendStatus(200);
+        });
     });
 
     // FUNCTIONS =============================
@@ -194,7 +200,7 @@ module.exports = (app, passport) => {
                 let steamid = '';
                 // If username is not found assume user gave their steam id as username
                 if (body.success === 42 || typeof body.steamid === 'undefined') {
-                    steamid = username
+                    steamid = username;
                 } else {
                     steamid = body.steamid;
                 }
@@ -213,7 +219,7 @@ module.exports = (app, passport) => {
                             const error = {success: false, message: 'Invalid SteamID or Steam User'};
                             cb(null, error);
                         }
-                    })
+                    });
 
             });
     };
@@ -239,7 +245,6 @@ module.exports = (app, passport) => {
                     if (loop === library.length) {
                         console.log('Done');
                         saveNewGamesToDb(games, 'steam', () => {
-                            console.log('save');
                             cb(games);
                         });
                     }
@@ -250,7 +255,6 @@ module.exports = (app, passport) => {
 
     // Get single games information
     const getSteamGameInformation = (appid, cb) => {
-        const platform = 'steam';
         // Only make a call if this game doesn't exist already
         Game.findOne({steamID: appid}).then((data) => {
             if (!data) {
@@ -259,7 +263,6 @@ module.exports = (app, passport) => {
                     .end(function (response) {
                         if (response.body !== null && response.body[appid].success) {
                             const gameName = response.body[appid].data.name;
-                            console.log('NEW GAME ' + gameName);
                             const game = {
                                 id: appid,
                                 name: gameName,
@@ -272,14 +275,13 @@ module.exports = (app, passport) => {
                         }
                     });
             } else {
-                console.log('EXISTS ' + data.name);
                 const game = {
                     id: data.steamID,
                     name: data.name,
                     playTime: 0,
                     reviewScore: 0,
                 };
-                cb(game)
+                cb(game);
             }
         });
 
@@ -394,13 +396,13 @@ module.exports = (app, passport) => {
     };
 
     // change games hidden property to true
-    const hideGameFromLibrary = (userId, gameId, platform, cb) => {
+    const showOrHideGameFromLibrary = (hide, userId, gameId, platform, cb) => {
         switch (platform) {
             case 'xbox': {
                 User.update({
                     _id: userId,
                     'xboxLibrary.id': gameId
-                }, {$set: {'xboxLibrary.$.hidden': true}}, {new: true}, (err, res) => {
+                }, {$set: {'xboxLibrary.$.hidden': hide}}, {new: true}, (err, res) => {
                     cb();
                 });
                 break;
@@ -409,7 +411,7 @@ module.exports = (app, passport) => {
                 User.update({
                     _id: userId,
                     'steamLibrary.id': gameId
-                }, {$set: {'steamLibrary.$.hidden': true}}, {new: true}, (err, res) => {
+                }, {$set: {'steamLibrary.$.hidden': hide}}, {new: true}, (err, res) => {
                     cb();
                 });
                 break;
@@ -418,7 +420,7 @@ module.exports = (app, passport) => {
                 User.update({
                     _id: userId,
                     'library.id': gameId
-                }, {$set: {'library.$.hidden': true}}, {new: true}, (err, res) => {
+                }, {$set: {'library.$.hidden': hide}}, {new: true}, (err, res) => {
                     cb();
                 });
                 break;
@@ -437,7 +439,6 @@ module.exports = (app, passport) => {
             for (const game of games) {
                 isGameInDb(game.name, (response) => {
                     if (!response) {
-                        console.log('NOT IN DB ' + game.name);
                         switch (platform) {
                             case 'xbox': {
                                 Game.create({
@@ -467,13 +468,13 @@ module.exports = (app, passport) => {
                                     if (!data) {
                                         Game.findByIdAndUpdate(response._id, {xboxID: game.id}, {new: true}, (err) => {
                                             if (err) {
-                                                return handleError(err);
+                                                return;
                                             }
                                         });
                                     }
                                 }, (err) => {
                                     if (err) {
-                                        return handleError(err)
+                                        return;
                                     }
                                 });
                                 break;
@@ -484,10 +485,9 @@ module.exports = (app, passport) => {
                                     if (!data) {
                                         Game.findByIdAndUpdate(response._id, {steamID: game.id}, {new: true}, (err) => {
                                             if (err) {
-                                                return handleError(err);
+                                                return;
                                             }
                                         });
-                                    } else {
                                     }
                                 });
                                 break;
@@ -528,10 +528,40 @@ module.exports = (app, passport) => {
             if (itemA > itemB) {
                 return 1;
             }
-
-            // names must be equal
             return 0;
         });
+    };
+
+    const getHiddenGamesNotInBacklog = (user) => {
+        let xboxLibrary = [];
+        for (let i = 0; i < user.xboxLibrary.length; i++) {
+            const data = user.backlog.find((item) => {
+                return item.name === user.xboxLibrary[i].name;
+            });
+            if (!data) {
+                xboxLibrary.push(user.xboxLibrary[i]);
+            }
+        }
+        let steamLibrary = [];
+        for (let i = 0; i < user.steamLibrary.length; i++) {
+            const data = user.backlog.find((item) => {
+                return item.name === user.steamLibrary[i].name;
+            });
+            if (!data) {
+                steamLibrary.push(user.steamLibrary[i]);
+            }
+        }
+        let library = [];
+        for (let i = 0; i < user.library.length; i++) {
+            const data = user.backlog.find((item) => {
+                return item.name === user.library[i].name;
+            });
+            if (!data) {
+                library.push(user.library[i]);
+            }
+        }
+        return {xboxLibrary: xboxLibrary, steamLibrary: steamLibrary, library: library};
+
     };
 
     // TOOLS =======================================

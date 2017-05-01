@@ -5,7 +5,7 @@
          class="game-container">
         <p><%= game.name %></p>
         <button class="button success backlog-add">Add to backlog</button>
-        <button class="button alert">Hide</button>
+        <button class="button alert backlog-hide">Hide</button>
         <hr>
     </div>
     <% }}) %>
@@ -15,7 +15,7 @@
          class="game-container">
         <p><%= game.name %></p>
         <button class="button success backlog-add">Add to backlog</button>
-        <button class="button alert">Hide</button>
+        <button class="button alert backlog-hide">Hide</button>
         <hr>
     </div>
     <% }}) %>
@@ -25,7 +25,7 @@
          class="game-container">
         <p><%= game.name %></p>
         <button class="button success backlog-add">Add to backlog</button>
-        <button class="button alert">Hide</button>
+        <button class="button alert backlog-hide">Hide</button>
         <hr>
     </div>
     <% }}) %>
@@ -38,7 +38,7 @@
          class="game-container">
         <p><%= game.name %></p>
         <button class="button success backlog-add">Add to backlog</button>
-        <button class="button alert">Hide</button>
+        <button class="button alert backlog-hide">Hide</button>
         <hr>
     </div>
     <% }}) %>
@@ -50,7 +50,7 @@
          class="game-container">
         <p><%= game.name %></p>
         <button class="button success backlog-add">Add to backlog</button>
-        <button class="button alert">Hide</button>
+        <button class="button alert backlog-hide">Hide</button>
         <hr>
     </div>
     <% }}) %>
@@ -62,7 +62,39 @@
          class="game-container">
         <p><%= game.name %></p>
         <button class="button success backlog-add">Add to backlog</button>
-        <button class="button alert">Hide</button>
+        <button class="button alert backlog-hide">Hide</button>
+        <hr>
+    </div>
+    <% }}) %>
+</div>
+<div class="tabs-panel" id="tab-hidden">
+    <% hiddenGames.library.forEach(function (game) {
+    if(game.hidden) { %>
+    <div id="hidden-<%= game.id %>" data-platform="other" data-game="<%= JSON.stringify(game) %>"
+         class="game-container">
+        <p><%= game.name %></p>
+        <button class="button success backlog-add">Add to backlog</button>
+        <button class="button alert backlog-show">Show</button>
+        <hr>
+    </div>
+    <% }}) %>
+    <% hiddenGames.xboxLibrary.forEach(function (game) {
+    if(game.hidden) { %>
+    <div id="hidden-<%= game.id %>" data-platform="xbox" data-game="<%= JSON.stringify(game) %>"
+         class="game-container">
+        <p><%= game.name %></p>
+        <button class="button success backlog-add">Add to backlog</button>
+        <button class="button alert backlog-show">Show</button>
+        <hr>
+    </div>
+    <% }}) %>
+    <% hiddenGames.steamLibrary.forEach(function (game) {
+    if(game.hidden) { %>
+    <div id="hidden-<%= game.id %>" data-platform="steam" data-game="<%= JSON.stringify(game) %>"
+         class="game-container">
+        <p><%= game.name %></p>
+        <button class="button success backlog-add">Add to backlog</button>
+        <button class="button alert backlog-show">Show</button>
         <hr>
     </div>
     <% }}) %>

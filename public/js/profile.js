@@ -1,10 +1,8 @@
 'use strict';
 
 const userId = document.getElementById('user-id').value;
-const steamUserBlock = document.getElementById('steam-user-block');
 const importSteamWrap = document.getElementById('import-steam-button');
 const importXboxWrap = document.getElementById('import-xbox-button');
-const xboxUserBlock = document.getElementById('xbox-user-block');
 const steamUserField = document.getElementById('steam-user');
 const saveSteamUserBtn = document.getElementById('save-steamuser');
 const xboxUserField = document.getElementById('xbox-user');
@@ -121,7 +119,7 @@ if (document.getElementById('import-xbox')) {
             } else {
                 location.reload();
             }
-        })
+        });
     });
 }
 if (document.getElementById('import-steam')) {
@@ -148,16 +146,24 @@ if (document.getElementById('import-steam')) {
     });
 }
 
+const buttonResponse = (res, game, e) => {
+    if (!res.ok) {
+        console.log('err');
+        e.target.removeAttribute('disabled');
+    } else {
+        $('#all-' + game.id).fadeOut();
+        $('#xbox-' + game.id).fadeOut();
+        $('#steam-' + game.id).fadeOut();
+        $('#other-' + game.id).fadeOut();
+    }
+};
+
 const addToBacklogBtns = document.getElementsByClassName('backlog-add');
 const addToBacklog = (e) => {
     const game = JSON.parse(e.target.parentNode.dataset.game);
     const platform = e.target.parentNode.dataset.platform;
     e.target.setAttribute('disabled', 'disabled');
     console.log(game.id);
-    // $('#all-' + game.id).fadeOut();
-    // $('#xbox-' + game.id).fadeOut();
-    // $('#steam-' + game.id).fadeOut();
-    // $('#other-' + game.id).fadeOut();
     const req = new Request('/addToBacklog');
     fetch(req, {
         method: 'POST',
@@ -167,20 +173,57 @@ const addToBacklog = (e) => {
         },
         body: JSON.stringify({userId: userId, game: JSON.stringify(game), platform: platform}),
     }).then((res) => {
+        buttonResponse(res, e);
+    });
+};
+const hideFromLibraryBtns = document.getElementsByClassName('backlog-hide');
+const hideFromLibrary = (e) => {
+    const game = JSON.parse(e.target.parentNode.dataset.game);
+    const platform = e.target.parentNode.dataset.platform;
+    e.target.setAttribute('disabled', 'disabled');
+    console.log(game.id);
+    const req = new Request('/showOrHideFromLibrary');
+    fetch(req, {
+        method: 'PATCH',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({hide: true, userId: userId, gameId: game.id, platform: platform}),
+    }).then((res) => {
+        buttonResponse(res, game, e);
+    });
+};
+const showInLibraryBtns = document.getElementsByClassName('backlog-show');
+const showInLibrary = (e) => {
+    const game = JSON.parse(e.target.parentNode.dataset.game);
+    const platform = e.target.parentNode.dataset.platform;
+    e.target.setAttribute('disabled', 'disabled');
+    console.log(game.id);
+    const req = new Request('/showOrHideFromLibrary');
+    fetch(req, {
+        method: 'PATCH',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({hide: false, userId: userId, gameId: game.id, platform: platform}),
+    }).then((res) => {
         if (!res.ok) {
             console.log('err');
             e.target.removeAttribute('disabled');
         } else {
-            console.log(res);
-            console.log(e.target.parentNode.id);
-            $('#all-' + game.id).fadeOut();
-            $('#xbox-' + game.id).fadeOut();
-            $('#steam-' + game.id).fadeOut();
-            $('#other-' + game.id).fadeOut();
+            $('#hidden-' + game.id).fadeOut();
         }
-
-    })
+    });
 };
+
 for (const btn of addToBacklogBtns) {
     btn.addEventListener('click', addToBacklog);
+}
+for (const btn of hideFromLibraryBtns) {
+    btn.addEventListener('click', hideFromLibrary);
+}
+for (const btn of showInLibraryBtns) {
+    btn.addEventListener('click', showInLibrary);
 }

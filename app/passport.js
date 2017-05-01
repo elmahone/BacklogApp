@@ -27,20 +27,16 @@ module.exports = (passport) => {
         });
     });
 
-    passport.use('local-register', new LocalStrategy({
-            passReqToCallback: true
-        }, (req, username, password, done) => {
-            User.findOne({'username': {$regex: new RegExp(username, "i")}},
+    passport.use('local-register', new LocalStrategy({passReqToCallback: true},
+        (req, username, password, done) => {
+            User.findOne({'username': {$regex: new RegExp(username, 'i')}},
                 (err, user) => {
                     if (err) {
-                        console.log(err);
                         return done(err);
                     }
                     if (user) {
-                        console.log('found');
                         return done(null, false, req.flash('errorMessage', 'Username already taken.'));
                     } else {
-                        console.log('new user');
                         User.create({
                             username: username,
                             password: cryptPassword(password),
@@ -49,17 +45,16 @@ module.exports = (passport) => {
                             library: [],
                             backlog: [],
                         }).then((json) => {
-                            return done(null, json)
+                            return done(null, json);
                         });
                     }
                 });
         })
     );
 
-    passport.use('local-login', new LocalStrategy({
-            passReqToCallback: true
-        }, (req, username, password, done) => {
-            User.findOne({username: {$regex: new RegExp(username, "i")}},
+    passport.use('local-login', new LocalStrategy({passReqToCallback: true},
+        (req, username, password, done) => {
+            User.findOne({username: {$regex: new RegExp(username, 'i')}},
                 (err, user) => {
                     if (err) {
                         return done(err);

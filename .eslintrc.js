@@ -3,14 +3,14 @@ module.exports = {
         "es6": true,
         "node": true
     },
-    "extends": "google",
+    "extends": "eslint:recommended",
     "parserOptions": {
         "sourceType": "module"
     },
     "rules": {
         "indent": [
             "error",
-            "tab"
+            4
         ],
         "linebreak-style": [
             "error",
