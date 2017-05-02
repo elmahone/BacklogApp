@@ -41,6 +41,12 @@ module.exports = (app, passport) => {
             res.redirect('/');
         }
     });
+    // SEARCH ROUTE
+    router.get('/search', (req, res) => {
+        res.render('pages/search', {
+            user: req.user,
+        });
+    });
 
     // Logout route
     router.get('/logout', (req, res) => {

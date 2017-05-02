@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Lag Log | Search</title>
+    <link rel="stylesheet" href="public/css/font-awesome.min.css">
+    <link rel="stylesheet" href="public/css/foundation.min.css">
+    <link rel="stylesheet" href="public/css/app.css">
+</head>
+<body>
+<header>
+    <% include ../partials/header.ejs %>
+</header>
+<main>
+    <div id="content">
+        <h1>Search</h1>
+        <input id="user-id" type="hidden" value="<%= user ? user.id : null %>">
+        <form id="search-form">
+            <div class="input-group">
+                <input id="search-title" type="text" class="input-group-field" placeholder="Search for a game">
+                <a type="submit" value="Search" class="button input-group-button"><i class="fa fa-search"
+                                                                                     aria-hidden="true"></i></a>
+            </div>
+        </form>
+        <div id="search-results"></div>
+    </div>
+</main>
+
+<footer>
+    <% include ../partials/footer.ejs %>
+</footer>
+
+<script src="vendor/jquery/dist/jquery.min.js"></script>
+<script src="vendor/sortablejs/Sortable.js"></script>
+<script src="public/js/vendor/foundation.js"></script>
+<script src="public/js/vendor/what-input.js"></script>
+<script src="public/js/app.js"></script>
+<script src="public/js/search.js"></script>
+<script>$(document).foundation();</script>
+</body>
+</html>
