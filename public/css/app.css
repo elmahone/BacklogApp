@@ -87,6 +87,11 @@ input.failed {
     margin-bottom: 2em;
 }
 
+main {
+    min-height: 85vh;
+}
+
+
 /* Classes */
 
 .top-bar-container,

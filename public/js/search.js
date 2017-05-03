@@ -27,7 +27,7 @@ const displaySearchResults = (results) => {
         htmlStr +=
             `<div id="${result.id}" class="search-result">
                 <img src="https:${result.cover.url}">
-                <h4>${result.name}</h4>
+                <h4>${result.name}</h4><b>(${moment(result.first_release_date).format('YYYY')})</b>
                 <a href="search/${result.id}">Game Details</a>
             </div><hr>`;
     }

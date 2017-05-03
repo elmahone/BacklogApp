@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Lag Log | Search</title>
+    <title>Lag Log | <%= game.name %></title>
     <link rel="stylesheet" href="/public/css/font-awesome.min.css">
     <link rel="stylesheet" href="/public/css/foundation.min.css">
     <link rel="stylesheet" href="/public/css/app.css">
@@ -14,16 +14,13 @@
 </header>
 <main>
     <div id="content">
-        <h1>Search</h1>
-        <input id="user-id" type="hidden" value="<%= user ? user.id : null %>">
-        <form id="search-form">
-            <div class="input-group">
-                <input id="search-title" type="text" class="input-group-field" placeholder="Search for a game">
-                <a type="submit" value="Search" class="button input-group-button"><i class="fa fa-search"
-                                                                                     aria-hidden="true"></i></a>
-            </div>
-        </form>
-        <div id="search-results"></div>
+        <%= user ? `<input id="user-id" type="hidden" value="${user.id}">` : '' %>
+        <h1><%= game.name %> (<%= release %>)</h1>
+        <p></p>
+        <p><%= game.summary %></p>
+        <img src="<%=cover%>">
+        <img src="<%=screenshots[0]%>">
+<%console.log(game)%>
     </div>
 </main>
 
