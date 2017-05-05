@@ -14,11 +14,11 @@
 </header>
 <main>
     <div id="content">
-        <h1>Backlog</h1><b>Estimated time to finish backlog: over <%= (backlogLength / (60 * 60)).toFixed(1) %>
-            hours</b>
-        <% if (user) { %>
-        <input id="user-id" type="hidden" value="<%= user.id %>">
+        <h1>Backlog</h1>
+        <% if (backlogLength > 0) { %>
+        <b>Estimated time to finish backlog: at least <%= (backlogLength / (60 * 60)).toFixed(1) %>hours</b>
         <% } %>
+        <input id="user-id" type="hidden" value="<%= user.id %>">
         <div id="backlog-list">
             <% user.backlog.forEach((game, i) => {
             if(i === 0) { %>

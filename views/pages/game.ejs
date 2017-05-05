@@ -14,13 +14,21 @@
 </header>
 <main>
     <div id="content">
-        <h1><%= game.name %> (<%= release %>)</h1>
+        <div class="top-part" style="
+                background: url('<%= screenshots[0] %>') no-repeat scroll center 0 transparent;
+                background-color: #e6e6e6;
+                background-size: cover;
+                min-height: 25em;">
+            <div class="top-part-container">
+                <div class="top-part-content">
+                    <img src="<%= cover %>">
+                    <h1 class="game-title"><%= game.name %> (<%= release %>)</h1>
+                </div>
+            </div>
+        </div>
         <p></p>
         <p><%= game.summary %></p>
-        <img src="<%= cover %>">
-        <img src="<%= screenshots[0] %>">
         <% if (user) { %>
-
         <a id="add-to-backlog" class="button">Add to backlog</a>
         <a id="add-to-library" class="button">Add to library</a>
         <% } %>

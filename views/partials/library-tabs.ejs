@@ -3,10 +3,7 @@
     if(!game.hidden) { %>
     <div id="all-<%= game.id %>" data-platform="other" data-game="<%= JSON.stringify(game) %>"
          class="game-container">
-        <h4><%= game.name %></h4>
-        <button class="button success backlog-add">Add to backlog</button>
-        <button class="button alert backlog-hide">Hide</button>
-        <hr>
+        <% include ../partials/tab-game.ejs %>
     </div>
     <% }}) %>
     <% user.steamLibrary.forEach(function(game){

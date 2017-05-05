@@ -7,6 +7,7 @@ const gameTime = document.getElementById('play-time').value;
 
 const addToBacklogBtn = document.getElementById('add-to-backlog');
 const addToBacklog = (e) => {
+    addToBacklogBtn.setAttribute('disabled','disabled');
     const req = new Request('/game/addToBacklog');
     fetch(req, {
         method: 'POST',
@@ -23,14 +24,16 @@ const addToBacklog = (e) => {
         }),
     }).then((res) => {
         if (!res.ok) {
+            addToBacklogBtn.removeAttribute('disabled');
             console.log('err');
         } else {
-            console.log('OK');
+            $('#add-to-backlog').fadeOut();
         }
     });
 };
 const addToLibraryBtn = document.getElementById('add-to-library');
 const addToLibrary = (e) => {
+    addToLibraryBtn.setAttribute('disabled','disabled');
     const req = new Request('/game/addToLibrary');
     fetch(req, {
         method: 'POST',
@@ -47,9 +50,10 @@ const addToLibrary = (e) => {
         }),
     }).then((res) => {
         if (!res.ok) {
+            addToLibraryBtn.removeAttribute('disabled');
             console.log('err');
         } else {
-            console.log('OK');
+            $('#add-to-library').fadeOut();
         }
     });
 };

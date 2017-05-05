@@ -24,10 +24,15 @@
     <div class="orbit" role="region" data-orbit>
         <div id="welcome">
             <div class="welcome-content">
+                <% if (!user) { %>
                 <h1>Sign up</h1>
                 <p>Sign up to create your own game backlog list.</p>
                 <button data-open="signup-modal" class="button primary">Sign Up</button>
                 <button data-open="login-modal" class="button secondary">Login</button>
+                <% } else { %>
+                <a href="/profile" class="button primary">Profile</a>
+                <a href="/backlog" class="button secondary">Backlog</a>
+                <% } %>
             </div>
         </div>
 

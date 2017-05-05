@@ -16,14 +16,21 @@ router.get('/:gameId', (req, res) => {
                 screens.push(igdb.image(screen, 'screenshot_huge', 'jpg'));
             }
         }
+        let inLibrary = false;
+        let inBacklog = false;
+        if (req.isAuthenticated()) {
+            inBacklog = isInBacklog(req.user._id, game);
+            inLibrary = isInLibrary(req.user._id, game);
+            console.log(inBacklog + inLibrary);
+        }
         res.render('pages/game', {
             user: req.isAuthenticated() ? req.user : null,
             game: game,
             release: moment(game.first_release_date).format('YYYY'),
             cover: igdb.image(game.cover, 'cover_big'),
             screenshots: screens,
-            isInLibrary: req.isAuthenticated() ? isInLibrary(req.user._id, game) : false,
-            isInBacklog: req.isAuthenticated() ? isInBacklog(req.user._id, game) : false
+            isInLibrary: inLibrary,
+            isInBacklog: inBacklog,
         });
     });
 });
@@ -77,13 +84,21 @@ router.post('/addToLibrary', (req, res) => {
 
 const isInLibrary = (user, game) => {
     User.findOne({_id: user, 'library.id': game.id}).then((resp) => {
-        return !!resp;
+        if (resp) {
+            return true;
+        } else {
+            return false;
+        }
     });
 };
 
 const isInBacklog = (user, game) => {
     User.findOne({_id: user, 'backlog.id': game.id, 'backlog.platform': 'other'}).then((resp) => {
-        return !!resp;
+        if (resp) {
+            return true;
+        } else {
+            return false;
+        }
     });
 };
 
