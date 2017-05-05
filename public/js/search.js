@@ -1,4 +1,6 @@
 'use strict';
+const userId = document.getElementById('user-id') ? document.getElementById('user-id').value : null;
+
 const searchResultsContainer = document.getElementById('search-results');
 const searchTitle = document.getElementById('search-title');
 const search = (e) => {
@@ -28,7 +30,7 @@ const displaySearchResults = (results) => {
             `<div id="${result.id}" class="search-result">
                 <img src="https:${result.cover.url}">
                 <h4>${result.name}</h4><b>(${moment(result.first_release_date).format('YYYY')})</b>
-                <a href="search/${result.id}">Game Details</a>
+                <a href="/game/${result.id}">Game Details</a>
             </div><hr>`;
     }
     searchResultsContainer.innerHTML = htmlStr;

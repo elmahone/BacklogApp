@@ -39,6 +39,7 @@ app.use('/', require('./app/routes/mainRoutes')(app, passport));
 app.use('/profile', require('./app/routes/profileRoutes'));
 app.use('/backlog', require('./app/routes/backlogRoutes'));
 app.use('/search', require('./app/routes/searchRoutes'));
+app.use('/game', require('./app/routes/gameRoutes'));
 
 if (process.env.ENV === 'dev') {
     const sslkey = fs.readFileSync('ssl-key.pem');

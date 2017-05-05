@@ -1,6 +1,8 @@
 'use strict';
 const express = require('express');
 const router = express.Router();
+const Game = require('../models/game');
+
 
 module.exports = (app, passport) => {
 
@@ -33,9 +35,12 @@ module.exports = (app, passport) => {
     // BACKLOG ROUTE
     router.get('/backlog', (req, res) => {
         if (req.isAuthenticated()) {
-            res.render('pages/backlog', {
-                user: req.user,
-                backlog: orderBacklog(req.user.backlog),
+            getEstimatedBacklogLength(req.user.backlog, (est) => {
+                res.render('pages/backlog', {
+                    user: req.user,
+                    backlog: orderBacklog(req.user.backlog),
+                    backlogLength: est,
+                });
             });
         } else {
             res.redirect('/');
@@ -64,10 +69,11 @@ module.exports = (app, passport) => {
 
     // Passport login
     router.post('/login', passport.authenticate('local-login', {
-        successRedirect: '/profile',
         failureRedirect: '/',
         failureFlash: true,
-    }));
+    }), (req, res) => {
+        res.redirect(req.headers.referer);
+    });
 
 
     // FUNCTIONS =============================
@@ -104,6 +110,42 @@ module.exports = (app, passport) => {
 
     };
 
+
+    const getEstimatedBacklogLength = (backlog, cb) => {
+        let times = [];
+        let platIds = [];
+        for (const game of backlog) {
+            if (game.platform === 'xbox') {
+                platIds.push({'xboxID': game.id});
+            } else if (game.platform === 'steam') {
+                platIds.push({'steamID': game.id});
+            } else {
+                platIds.push({'igdbID': game.id});
+            }
+        }
+        if (platIds.length > 0) {
+            Game.find({$or: platIds}).then((data) => {
+                for (const game of data) {
+                    let gameTime = [];
+                    if (typeof game.playTime.apiTime !== 'undefined') {
+                        gameTime.push(game.playTime.apiTime);
+                    }
+                    if (game.playTime.userTimes.length > 0) {
+                        for (const userTime of game.playTime.userTimes) {
+                            if (userTime > 0) {
+                                gameTime.push(userTime);
+                            }
+                        }
+                    }
+                    times.push(average(gameTime));
+                }
+                cb(sum(times));
+            });
+        } else {
+            cb(0);
+        }
+    };
+
     const orderBacklog = (backlog) => {
         return backlog.sort((a, b) => {
             const itemA = a.listIndex;
@@ -116,6 +158,26 @@ module.exports = (app, passport) => {
             }
             return 0;
         });
+    };
+
+    const average = (arr) => {
+        if (arr.length > 0) {
+            return sum(arr) / arr.length;
+        } else {
+            return 0;
+        }
+    };
+
+    const sum = (arr) => {
+        if (arr.length > 0) {
+            let sum = 0;
+            for (let i = 0; i < arr.length; i++) {
+                sum += parseInt(arr[i]); //don't forget to add the base
+            }
+            return sum;
+        } else {
+            return 0;
+        }
     };
 
     return router;

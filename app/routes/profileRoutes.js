@@ -97,13 +97,11 @@ router.post('/addToBacklog', (req, res) => {
     };
     User.findByIdAndUpdate(user, {$push: {backlog: addedGame}}, {new: true})
         .then(() => {
-            console.log('saved?');
             showOrHideGameFromLibrary(true, user, game['id'], req.body.platform, () => {
                 res.sendStatus(200);
             });
         });
 });
-
 
 router.patch('/savePlatformUsername', (req, res) => {
     const updateObj = {};
@@ -132,7 +130,6 @@ router.patch('/showOrHideFromLibrary', (req, res) => {
 // check steam id validity. if valid return library
 const checkSteamId = (username, cb = null) => {
     username = encodeURIComponent(username.trim());
-    console.log(username);
     // Get steam user id with given username
     unirest.get(`http://api.steampowered.com/ISteamUser/ResolveVanityURL/v0001/?key=${process.env.STEAM_API}&vanityurl=${username}`)
         .end(function (response) {
@@ -179,11 +176,8 @@ const getSteamGames = (library, cb) => {
                 if (game) {
                     games.push(game);
                 }
-                console.log(loop + '/' + library.length);
-
                 // Final loop
                 if (loop === library.length) {
-                    console.log('Done');
                     saveNewGamesToDb(games, 'steam', () => {
                         cb(games);
                     });
@@ -263,7 +257,6 @@ const getXboxGames = (xuid, cb) => {
     unirest.get('https://xboxapi.com/v2/' + xuid + '/xboxonegames')
         .headers({'X-Auth': process.env.XBOX_API})
         .end(function (response) {
-            console.log(response.body);
             const library = response.body.titles;
             for (const game of library) {
                 if (game.maxGamerscore !== 0) {
@@ -284,7 +277,6 @@ const getXboxGames = (xuid, cb) => {
     unirest.get('https://xboxapi.com/v2/' + xuid + '/xbox360games')
         .headers({'X-Auth': process.env.XBOX_API})
         .end(function (response) {
-            console.log(response.body);
             const library = response.body.titles;
             let loop = 0;
             for (const game of library) {
@@ -308,23 +300,18 @@ const getXboxGames = (xuid, cb) => {
         });
 };
 
-
 // Check if game with name exists already
 // Also check with alternate names
 const isGameInDb = (gameName, cb) => {
     Game.findOne({
-        name: {
-            $regex: new RegExp(gameName, 'i')
-        }
+        name_lower: gameName.toLowerCase(),
     }).then((json) => {
         if (json) {
             cb(json);
         } else {
             const altNames = generateAltNames(gameName);
             Game.findOne({
-                altNames: {
-                    $regex: new RegExp(altNames, 'i')
-                }
+                altNames: altNames
             }).then((json) => {
                 if (json) {
                     cb(json);
@@ -384,6 +371,7 @@ const saveNewGamesToDb = (games, platform, cb) => {
                         case 'xbox': {
                             Game.create({
                                 name: game.name,
+                                name_lower: game.name.toLowerCase(),
                                 altNames: generateAltNames(game.name),
                                 xboxID: game.id,
                             });
@@ -392,6 +380,7 @@ const saveNewGamesToDb = (games, platform, cb) => {
                         case 'steam': {
                             Game.create({
                                 name: game.name,
+                                name_lower: game.name.toLowerCase(),
                                 altNames: generateAltNames(game.name),
                                 steamID: game.id,
                             });
@@ -489,8 +478,12 @@ const fromRoman = (str) => {
 };
 const generateAltNames = (name) => {
     let altNames = [];
-    let strippedName = name.replace(/\./g, '').replace(/\'/g, '').replace(/[^\w\s!?]/g, ' ').replace('_', ' ').replace(/  +/g, ' ');
-    if (strippedName !== name) {
+    let strippedName = name.replace(/\./g, '')
+        .replace(/\'/g, '')
+        .replace(/[^\w\s!?]/g, ' ')
+        .replace('_', ' ')
+        .replace(/  +/g, ' ').toLowerCase();
+    if (strippedName !== name.toLowerCase()) {
         altNames.push(strippedName.trim());
     }
     const nameArr = strippedName.split(' ');
@@ -503,8 +496,8 @@ const generateAltNames = (name) => {
             }
             return word;
         });
-        convertedName = convertedName.join(' ');
-        if (convertedName !== name && convertedName !== strippedName) {
+        convertedName = convertedName.join(' ').toLowerCase();
+        if (convertedName !== name.toLowerCase() && convertedName !== strippedName) {
             altNames.push(convertedName.trim());
         }
         return altNames;

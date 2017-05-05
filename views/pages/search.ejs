@@ -15,12 +15,14 @@
 <main>
     <div id="content">
         <h1>Search</h1>
-        <input id="user-id" type="hidden" value="<%= user ? user.id : null %>">
+        <% if (user) { %>
+        <input id="user-id" type="hidden" value="<%= user.id %>">
+        <% } %>
         <form id="search-form">
             <div class="input-group">
                 <input id="search-title" type="text" class="input-group-field" placeholder="Search for a game">
-                <a type="submit" value="Search" class="button input-group-button"><i class="fa fa-search"
-                                                                                     aria-hidden="true"></i></a>
+                <a type="submit" class="button input-group-button"><i class="fa fa-search"
+                                                                      aria-hidden="true"></i></a>
             </div>
         </form>
         <div id="search-results"></div>
@@ -30,6 +32,7 @@
 <footer>
     <% include ../partials/footer.ejs %>
 </footer>
+<% include ../partials/modals.ejs %>
 
 <script src="/vendor/jquery/dist/jquery.min.js"></script>
 <script src="/vendor/sortablejs/Sortable.js"></script>

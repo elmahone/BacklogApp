@@ -19,8 +19,6 @@ const userSchema = new Schema({
         {
             id: String,
             name: String,
-            playTime: Number,
-            reviewScore: Number,
             hidden: {type: Boolean, default: false},
         }
     ],
@@ -28,8 +26,6 @@ const userSchema = new Schema({
         {
             id: String,
             name: String,
-            playTime: Number,
-            reviewScore: Number,
             hidden: {type: Boolean, default: false},
         }
     ],
@@ -37,8 +33,6 @@ const userSchema = new Schema({
         {
             id: String,
             name: String,
-            playTime: Number,
-            reviewScore: Number,
             hidden: {type: Boolean, default: false},
         }
     ],
@@ -47,8 +41,6 @@ const userSchema = new Schema({
             id: String,
             platform: String,
             name: String,
-            playTime: Number,
-            reviewScore: Number,
             listIndex: Number,
         }
     ]

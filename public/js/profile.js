@@ -1,5 +1,4 @@
 'use strict';
-
 const userId = document.getElementById('user-id').value;
 const importSteamWrap = document.getElementById('import-steam-button');
 const importXboxWrap = document.getElementById('import-xbox-button');
@@ -135,18 +134,19 @@ if (document.getElementById('import-steam')) {
                 <div class="loading__item3"></div>
                 <div class="loading__item4"></div>
                 </div>`;
-        const request = new Request(`/importGames/steam/${steamUserField.value}/${userId}`);
+        const request = new Request(`/profile/importGames/steam/${steamUserField.value}/${userId}`);
         fetch(request).then((res) => {
             if (!res.ok) {
                 console.log('err');
             } else {
                 location.reload();
             }
-        })
+        });
     });
 }
 
 const buttonResponse = (res, game, e) => {
+    console.log('why');
     if (!res.ok) {
         console.log('err');
         e.target.removeAttribute('disabled');
@@ -160,8 +160,8 @@ const buttonResponse = (res, game, e) => {
 
 const addToBacklogBtns = document.getElementsByClassName('backlog-add');
 const addToBacklog = (e) => {
-    const game = JSON.parse(e.target.parentNode.dataset.game);
-    const platform = e.target.parentNode.dataset.platform;
+    const game = JSON.parse(e.target.parentNode.parentNode.parentNode.dataset.game);
+    const platform = e.target.parentNode.parentNode.parentNode.dataset.platform;
     e.target.setAttribute('disabled', 'disabled');
     console.log(game.id);
     const req = new Request('/profile/addToBacklog');
@@ -173,13 +173,13 @@ const addToBacklog = (e) => {
         },
         body: JSON.stringify({userId: userId, game: JSON.stringify(game), platform: platform}),
     }).then((res) => {
-        buttonResponse(res, e);
+        buttonResponse(res, game, e);
     });
 };
 const hideFromLibraryBtns = document.getElementsByClassName('backlog-hide');
 const hideFromLibrary = (e) => {
-    const game = JSON.parse(e.target.parentNode.dataset.game);
-    const platform = e.target.parentNode.dataset.platform;
+    const game = JSON.parse(e.target.parentNode.parentNode.parentNode.dataset.game);
+    const platform = e.target.parentNode.parentNode.parentNode.dataset.platform;
     e.target.setAttribute('disabled', 'disabled');
     console.log(game.id);
     const req = new Request('/profile/showOrHideFromLibrary');
@@ -196,8 +196,8 @@ const hideFromLibrary = (e) => {
 };
 const showInLibraryBtns = document.getElementsByClassName('backlog-show');
 const showInLibrary = (e) => {
-    const game = JSON.parse(e.target.parentNode.dataset.game);
-    const platform = e.target.parentNode.dataset.platform;
+    const game = JSON.parse(e.target.parentNode.parentNode.parentNode.dataset.game);
+    const platform = e.target.parentNode.parentNode.parentNode.dataset.platform;
     e.target.setAttribute('disabled', 'disabled');
     console.log(game.id);
     const req = new Request('/profile/showOrHideFromLibrary');

@@ -14,19 +14,31 @@
 </header>
 <main>
     <div id="content">
-        <%= user ? `<input id="user-id" type="hidden" value="${user.id}">` : '' %>
         <h1><%= game.name %> (<%= release %>)</h1>
         <p></p>
         <p><%= game.summary %></p>
-        <img src="<%=cover%>">
-        <img src="<%=screenshots[0]%>">
-<%console.log(game)%>
+        <img src="<%= cover %>">
+        <img src="<%= screenshots[0] %>">
+        <% if (user) { %>
+
+        <a id="add-to-backlog" class="button">Add to backlog</a>
+        <a id="add-to-library" class="button">Add to library</a>
+        <% } %>
+
     </div>
 </main>
 
 <footer>
     <% include ../partials/footer.ejs %>
 </footer>
+<% if (user) { %>
+<input id="user-id" type="hidden" value="<%= user.id %>">
+<% } %>
+<input id="game-id" type="hidden" value="<%= game.id %>">
+<input id="game-name" type="hidden" value="<%= game.name %>">
+<input id="review-score" type="hidden" value="<%= game.total_rating ? game.total_rating : 0 %>">
+<input id="play-time" type="hidden" value="<%= game.time_to_beat ? game.time_to_beat.normally : 0 %>">
+<% include ../partials/modals.ejs %>
 
 <script src="/vendor/jquery/dist/jquery.min.js"></script>
 <script src="/vendor/sortablejs/Sortable.js"></script>
@@ -34,7 +46,7 @@
 <script src="/public/js/vendor/foundation.js"></script>
 <script src="/public/js/vendor/what-input.js"></script>
 <script src="/public/js/app.js"></script>
-<script src="/public/js/search.js"></script>
+<script src="/public/js/game.js"></script>
 <script>$(document).foundation();</script>
 </body>
 </html>

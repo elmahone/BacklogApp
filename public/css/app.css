@@ -18,17 +18,14 @@ footer .footer-right li:last-of-type {
 
 footer .footer-left a {
     font-size: 1.3rem;
-    color: #4a4a4a;
 }
 
 footer .footer-right .fa {
     font-size: 1.3rem;
-    color: #4a4a4a;
 }
 
 footer .footer-right .fa:hover {
     transition: color 0.3s ease-in;
-    color: #000000;
 }
 
 input.failed {
@@ -91,8 +88,16 @@ main {
     min-height: 85vh;
 }
 
-
 /* Classes */
+.top-bar, .top-bar ul, footer {
+    background-color: #1f1f1f;
+    color: #f3f3f3;
+}
+
+.top-bar ul a, footer a {
+    color: #f3f3f3;
+
+}
 
 .top-bar-container,
 .footer-container {
@@ -165,6 +170,18 @@ main {
     font-size: 15pt;
 }
 
+.game-container {
+    margin-top: 3px;
+    box-shadow: 0px 0px 2px #cecece inset;
+    padding:1em 0;
+    border: 1px solid #a7a7a7;
+}
+.movable.game {
+    margin-top: 3px;
+    box-shadow: 0px 0px 2px #cecece inset;
+    padding:1em 0;
+    border: 1px solid #a7a7a7;
+}
 /* ANIMATIONS */
 
 .spinner {

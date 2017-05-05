@@ -14,26 +14,40 @@
 </header>
 <main>
     <div id="content">
-        <h1>Backlog</h1>
+        <h1>Backlog</h1><b>Estimated time to finish backlog: over <%= (backlogLength / (60 * 60)).toFixed(1) %>
+            hours</b>
+        <% if (user) { %>
         <input id="user-id" type="hidden" value="<%= user.id %>">
+        <% } %>
         <div id="backlog-list">
             <% user.backlog.forEach((game, i) => {
             if(i === 0) { %>
             <b>Currently Playing:</b>
-            <div id="<%= game.id %>" class="first game">
-                <h3><%= game.name %></h3>
-                <button id="move-back" class="button secondary">Move back to backlog</button>
-                <button id="finished" class="button secondary">Finished</button>
+            <div id="<%= game.id %>" data-platform="<%= game.platform %>" class="first game">
+                <div class="row">
+                    <div class="small-12 columns text-center">
+                        <h3><%= game.name %></h3>
+                    </div>
+                    <div class="small-12 columns text-center">
 
+                        <button id="move-back" class="button secondary">Move back to backlog</button>
+                        <button id="finished" data-open="finish-modal" class="button secondary">Finished</button>
+                    </div>
+                </div>
             </div>
             <hr>
             <b>Next Up:</b>
             <% } else { %>
-            <div id="<%= game.id %>" class="movable game">
-                <p><%= game.name %></p>
-                <button class="button secondary play-now">I'm playing this now</button>
-                <button class="button secondary">Remove</button>
-                <hr>
+            <div id="<%= game.id %>" data-platform="<%= game.platform %>" class="movable game">
+                <div class="row">
+                    <div class="small-8 columns">
+                        <h4><%= game.name %></h4>
+                    </div>
+                    <div class="small-4 columns">
+                        <button class="button secondary play-now">I'm playing this now</button>
+                        <button class="button secondary remove-game">Remove</button>
+                    </div>
+                </div>
             </div>
             <% }}) %>
         </div>
@@ -43,6 +57,29 @@
 <footer>
     <% include ../partials/footer.ejs %>
 </footer>
+<% if (user.backlog.length > 0) { %>
+<div class="reveal" id="finish-modal" data-reveal>
+    <h2>Review</h2>
+    <form id="finish-form" action="/backlog/finish" method="post">
+        <label for="review">Review</label>
+        <input type="hidden" name="userId" value="<%= user.id %>">
+        <input type="hidden" name="gameId" value="<%= user.backlog[0].id %>">
+        <input type="hidden" name="platform" value="<%= user.backlog[0].platform %>">
+        <div class="input-group">
+            <input id="review" type="number" name="review" placeholder="88" min="0" max="100"
+                   class="input-group-field review-input">
+            <span class="input-group-label">/ 100</span>
+        </div>
+        <label for="playtime">How long was the game?</label>
+        <div class="input-group">
+            <input id="playtime" type="number" name="playTime" placeholder="23" min="0" max="999"
+                   class="input-group-field playtime-input">
+            <span class="input-group-label">hours</span>
+        </div>
+        <input type="submit" id="submit-finish" class="button expanded" value="Done!">
+    </form>
+</div>
+<% } %>
 
 <script src="/vendor/jquery/dist/jquery.min.js"></script>
 <script src="/vendor/sortablejs/Sortable.js"></script>

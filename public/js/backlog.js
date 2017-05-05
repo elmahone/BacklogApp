@@ -33,9 +33,28 @@ const moveBackToBacklog = () => {
 };
 moveBackButton.addEventListener('click', moveBackToBacklog);
 
+const removeButtons = document.getElementsByClassName('remove-game');
+const removeFromBacklog = (e) => {
+    const game = e.target.parentNode.parentNode.parentNode.id;
+    const platform = e.target.parentNode.parentNode.parentNode.dataset.platform;
+    const req = new Request('/backlog/remove');
+    fetch(req, {
+        method: 'DELETE',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({userId: userId, gameId: game, platform: platform})
+    });
+    $('#' + game).fadeOut();
+};
+for (const btn of removeButtons) {
+    btn.addEventListener('click', removeFromBacklog);
+}
+
 const playNowButtons = document.getElementsByClassName('play-now');
 const moveToFirstOfBacklog = (e) => {
-    const game = e.target.parentNode.id;
+    const game = e.target.parentNode.parentNode.parentNode.id;
     let listOrder = getListOrder();
     listOrder.push(listOrder.shift());
     listOrder.sort((a, b) => {
